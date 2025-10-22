@@ -6,9 +6,11 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.vjaykrsna.nanoai.core.common.NanoAIResult
 import com.vjaykrsna.nanoai.feature.chat.domain.SendPromptUseCase
 import com.vjaykrsna.nanoai.feature.chat.domain.SwitchPersonaUseCase
 import com.vjaykrsna.nanoai.feature.chat.presentation.ChatViewModel
+import com.vjaykrsna.nanoai.feature.library.data.ModelCatalogRepository
 import com.vjaykrsna.nanoai.testing.ComposeTestHarness
 import com.vjaykrsna.nanoai.testing.DomainTestBuilders
 import com.vjaykrsna.nanoai.testing.FakeConversationRepository
@@ -39,6 +41,7 @@ class ChatScreenTest {
   private lateinit var personaRepository: FakePersonaRepository
   private lateinit var sendPromptUseCase: SendPromptUseCase
   private lateinit var switchPersonaUseCase: SwitchPersonaUseCase
+  private lateinit var modelCatalogRepository: ModelCatalogRepository
   private lateinit var viewModel: ChatViewModel
   private lateinit var harness: ComposeTestHarness
   private val testDispatcher = StandardTestDispatcher()
@@ -49,6 +52,7 @@ class ChatScreenTest {
     personaRepository = FakePersonaRepository()
     sendPromptUseCase = mockk(relaxed = true)
     switchPersonaUseCase = mockk(relaxed = true)
+    modelCatalogRepository = mockk(relaxed = true)
 
     coEvery { sendPromptUseCase(any(), any(), any()) } returns NanoAIResult.success(Unit)
     coEvery { switchPersonaUseCase(any(), any(), any()) } returns
@@ -60,6 +64,7 @@ class ChatScreenTest {
         switchPersonaUseCase,
         conversationRepository,
         personaRepository,
+        modelCatalogRepository,
         testDispatcher,
       )
     harness = ComposeTestHarness(composeTestRule)
@@ -67,7 +72,7 @@ class ChatScreenTest {
 
   @Test
   fun chatScreen_displaysContentDescription() {
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule
       .onNodeWithContentDescription("Chat screen with message history and input")
@@ -76,7 +81,7 @@ class ChatScreenTest {
 
   @Test
   fun chatScreen_withNoThread_disablesSendButton() {
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     // Composer bar should be disabled when no thread is selected
     composeTestRule.waitForIdle()
@@ -96,7 +101,7 @@ class ChatScreenTest {
     personaRepository.setPersonas(listOf(persona))
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -115,7 +120,7 @@ class ChatScreenTest {
     personaRepository.setPersonas(listOf(persona))
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -139,7 +144,7 @@ class ChatScreenTest {
     conversationRepository.addMessage(threadId, message2)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -160,7 +165,7 @@ class ChatScreenTest {
     conversationRepository.addMessage(threadId, userMessage)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -184,7 +189,7 @@ class ChatScreenTest {
     viewModel.selectThread(threadId)
 
     // Make the use case hang to show loading
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     // Manually trigger loading state (in real scenario, would happen during send)
     // The loading indicator appears with "Loading response" content description
@@ -199,7 +204,7 @@ class ChatScreenTest {
     conversationRepository.addThread(thread)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -215,11 +220,11 @@ class ChatScreenTest {
     val thread = DomainTestBuilders.buildChatThread(threadId = threadId, personaId = personaId)
 
     conversationRepository.addThread(thread)
-    coEvery { sendPromptUseCase.sendPrompt(any(), any(), any()) } returns
-      Result.failure(Exception("Failed to send prompt"))
+    coEvery { sendPromptUseCase(any(), any(), any()) } returns
+      NanoAIResult.recoverable("Failed to send prompt")
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -250,7 +255,7 @@ class ChatScreenTest {
     conversationRepository.addThread(thread)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -267,7 +272,7 @@ class ChatScreenTest {
     conversationRepository.addThread(thread)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -287,7 +292,7 @@ class ChatScreenTest {
     conversationRepository.addThread(thread)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -313,7 +318,7 @@ class ChatScreenTest {
     conversationRepository.addMessage(threadId, assistantMessage)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -346,7 +351,7 @@ class ChatScreenTest {
     conversationRepository.addMessage(threadId, richMessage)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -369,7 +374,7 @@ class ChatScreenTest {
     conversationRepository.addMessage(threadId, longMessage)
     viewModel.selectThread(threadId)
 
-    composeTestRule.setContent { ChatScreen(viewModel = viewModel) }
+    composeTestRule.setContent { ChatScreen(viewModel = viewModel, onNavigate = {}) }
 
     composeTestRule.waitForIdle()
 
@@ -400,7 +405,7 @@ class ChatScreenTest {
     composeTestRule.setContent {
       // Dark mode would be controlled by system theme or app settings
       // For this test, we verify the screen renders regardless of theme
-      ChatScreen(viewModel = viewModel)
+      ChatScreen(viewModel = viewModel, onNavigate = {})
     }
 
     composeTestRule.waitForIdle()

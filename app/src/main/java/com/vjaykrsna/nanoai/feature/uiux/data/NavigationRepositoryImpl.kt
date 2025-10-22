@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +41,7 @@ constructor(
   @IoDispatcher override val ioDispatcher: CoroutineDispatcher,
 ) : NavigationRepository {
 
+  private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
   private val userId: String = UIUX_DEFAULT_USER_ID
   private val hasAppliedHomeStartup = AtomicBoolean(false)
 
@@ -47,7 +50,7 @@ constructor(
       .observeUIStateSnapshot(userId)
       .map { snapshot -> snapshot ?: defaultSnapshot(userId) }
       .map { snapshot -> coerceInitialActiveMode(snapshot) }
-      .stateIn(ioDispatcher, SharingStarted.Eagerly, defaultSnapshot(userId))
+      .stateIn(scope, SharingStarted.Eagerly, defaultSnapshot(userId))
 
   private val _windowSizeClass = MutableStateFlow(defaultWindowSizeClass())
   private val _undoPayload = MutableStateFlow<UndoPayload?>(null)
@@ -142,7 +145,7 @@ constructor(
           .toggleRightDrawer(open = false, panelId = null)
           .updatePaletteVisibility(visible = false)
 
-      withContext(ioDispatcher) {
+      scope.launch {
         if (
           !snapshot.activeModeRoute.equals(UIStateSnapshot.DEFAULT_MODE_ROUTE, ignoreCase = true)
         ) {

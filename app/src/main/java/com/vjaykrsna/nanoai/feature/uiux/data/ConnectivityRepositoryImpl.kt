@@ -14,6 +14,8 @@ import com.vjaykrsna.nanoai.ui.navigation.Screen
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,16 +32,14 @@ constructor(
   @IoDispatcher override val ioDispatcher: CoroutineDispatcher,
 ) : ConnectivityRepository {
 
+  private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
+
   private val connectivity = MutableStateFlow(ConnectivityStatus.ONLINE)
 
   private val preferences: StateFlow<DomainUiPreferencesSnapshot> =
     userProfileRepository
       .observePreferences()
-      .stateIn(
-        ioDispatcher,
-        SharingStarted.Eagerly,
-        DomainUiPreferencesSnapshot(),
-      )
+      .stateIn(scope, SharingStarted.Eagerly, DomainUiPreferencesSnapshot())
 
   override val connectivityBannerState: Flow<ConnectivityBannerState> =
     combine(connectivity, preferences) {
@@ -52,11 +52,7 @@ constructor(
           cta = modelLibraryCta(status),
         )
       }
-      .stateIn(
-        ioDispatcher,
-        SharingStarted.Eagerly,
-        ConnectivityBannerState(status = connectivity.value),
-      )
+      .stateIn(scope, SharingStarted.Eagerly, ConnectivityBannerState(status = connectivity.value))
 
   override suspend fun updateConnectivity(status: ConnectivityStatus) {
     connectivity.value = status

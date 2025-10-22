@@ -27,25 +27,18 @@ constructor(
   @IoDispatcher override val ioDispatcher: CoroutineDispatcher,
 ) : ThemeRepository {
 
+  private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
   private val userId = UIUX_DEFAULT_USER_ID
 
   private val preferences =
     userProfileRepository
       .observePreferences()
-      .stateIn(
-        ioDispatcher,
-        SharingStarted.Eagerly,
-        DomainUiPreferencesSnapshot(),
-      )
+      .stateIn(scope, SharingStarted.Eagerly, DomainUiPreferencesSnapshot())
 
   override val uiPreferenceSnapshot: Flow<UiPreferenceSnapshot> =
     preferences
       .map { snapshot -> snapshot.toUiPreferenceSnapshot() }
-      .stateIn(
-        ioDispatcher,
-        SharingStarted.Eagerly,
-        UiPreferenceSnapshot(),
-      )
+      .stateIn(scope, SharingStarted.Eagerly, UiPreferenceSnapshot())
 
   override suspend fun updateThemePreference(theme: ThemePreference) {
     withContext(ioDispatcher) { userProfileRepository.updateThemePreference(userId, theme.name) }

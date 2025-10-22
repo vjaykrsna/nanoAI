@@ -11,7 +11,9 @@ import com.vjaykrsna.nanoai.feature.library.data.impl.ModelCatalogRepositoryImpl
 import com.vjaykrsna.nanoai.feature.library.model.InstallState
 import com.vjaykrsna.nanoai.feature.library.model.ProviderType
 import com.vjaykrsna.nanoai.model.catalog.DeliveryType
+import com.vjaykrsna.nanoai.model.leap.LeapModelRemoteDataSource
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
+import io.mockk.mockk
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,6 +35,7 @@ class ModelCatalogRepositoryImplTest {
   private lateinit var context: Context
   private lateinit var database: NanoAIDatabase
   private lateinit var repository: ModelCatalogRepositoryImpl
+  private lateinit var leapModelRemoteDataSource: LeapModelRemoteDataSource
 
   @Before
   fun setUp() {
@@ -41,11 +44,13 @@ class ModelCatalogRepositoryImplTest {
       Room.inMemoryDatabaseBuilder(context, NanoAIDatabase::class.java)
         .allowMainThreadQueries()
         .build()
+    leapModelRemoteDataSource = mockk(relaxed = true)
     repository =
       ModelCatalogRepositoryImpl(
         database.modelPackageReadDao(),
         database.modelPackageWriteDao(),
         database.chatThreadDao(),
+        leapModelRemoteDataSource,
         context,
         kotlinx.datetime.Clock.System,
       )

@@ -1,6 +1,5 @@
 package com.vjaykrsna.nanoai.testing
 
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
@@ -81,7 +80,7 @@ class AccessibilityTestHelpers(
     isProgressIndicator: Boolean = false,
   ) {
     // Always check for readable text if present
-    if (hasTextContent()) {
+    if (hasTextContent().matches(this.getSemanticsNode())) {
       assertHasReadableText()
     }
 
@@ -117,7 +116,7 @@ fun ComposeTestRule.accessibilityHelpers(): AccessibilityTestHelpers =
 private fun hasMinimumTouchTarget(minSize: Dp): SemanticsMatcher =
   SemanticsMatcher("has minimum touch target of ${minSize.value}dp") { node ->
     val size = node.size
-    size.width >= minSize && size.height >= minSize
+    size.width >= minSize.value && size.height >= minSize.value
   }
 
 private fun hasTextContent(): SemanticsMatcher =
@@ -136,7 +135,7 @@ private fun isHeading(): SemanticsMatcher =
   SemanticsMatcher.expectValue(SemanticsProperties.Heading, Unit)
 
 private fun isFocusable(): SemanticsMatcher =
-  SemanticsMatcher.keyIsDefined(SemanticsActions.RequestFocus)
+  SemanticsMatcher.keyIsDefined(SemanticsProperties.Focusable)
 
 private fun hasProgressSemantics(): SemanticsMatcher =
   SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)

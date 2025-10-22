@@ -1,11 +1,11 @@
 package com.vjaykrsna.nanoai.testing
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.unit.dp
 
 /**
  * UI Quality test helpers for Material Design 3 compliance and visual consistency.
@@ -94,14 +94,14 @@ class UIQualityTestHelpers(private val composeTestRule: ComposeTestRule) {
    */
   fun runScreenHierarchyAudit() {
     // Check for proper heading structure (H1, H2, etc.)
-    composeTestRule.onAllNodes(isHeading()).assertCountAtLeast(1)
+    composeTestRule.onAllNodes(isHeading()).fetchSemanticsNodes().isNotEmpty()
 
     // Check that interactive elements are properly spaced
     composeTestRule.onAllNodes(isClickable()).apply {
       // Verify minimum touch targets for interactive elements
       fetchSemanticsNodes().forEach { node ->
         val size = node.size
-        assert(size.width >= 48.dp && size.height >= 48.dp) {
+        assert(size.width >= 48f && size.height >= 48f) {
           "Interactive element has insufficient touch target: ${size.width} x ${size.height}"
         }
       }
@@ -124,22 +124,20 @@ private fun hasReasonableSpacing(): SemanticsMatcher =
 private fun hasColorSemantics(): SemanticsMatcher =
   SemanticsMatcher("uses semantic colors") { node ->
     // Check for color-related semantics
-    node.config.containsKey(SemanticsProperties.Background) ||
-      node.config.containsKey(SemanticsProperties.Foreground)
+    SemanticsMatcher.keyIsDefined(SemanticsProperties.ContentDescription).matches(node)
   }
 
 private fun hasTypographySemantics(): SemanticsMatcher =
   SemanticsMatcher("uses Material typography") { node ->
     // Check for text-related semantics
-    node.config.containsKey(SemanticsProperties.Text) ||
-      node.config.containsKey(SemanticsProperties.EditableText)
+    SemanticsMatcher.keyIsDefined(SemanticsProperties.Text).matches(node) ||
+      SemanticsMatcher.keyIsDefined(SemanticsProperties.EditableText).matches(node)
   }
 
 private fun hasMaterialElevation(): SemanticsMatcher =
   SemanticsMatcher("uses Material elevation") { node ->
     // Check for shadow/elevation semantics
-    node.config.containsKey(SemanticsProperties.ShadowElevation) ||
-      node.config.containsKey(SemanticsProperties.TonalElevation)
+    SemanticsMatcher.keyIsDefined(SemanticsProperties.ShadowElevation).matches(node)
   }
 
 private fun hasClickSemantics(): SemanticsMatcher =

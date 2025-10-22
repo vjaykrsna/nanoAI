@@ -5,7 +5,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
 import com.vjaykrsna.nanoai.feature.library.data.catalog.ModelCatalogSource
@@ -14,6 +13,9 @@ import com.vjaykrsna.nanoai.feature.library.domain.RefreshModelCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.model.InstallState
 import com.vjaykrsna.nanoai.feature.library.model.ProviderType
 import com.vjaykrsna.nanoai.model.catalog.DeliveryType
+import com.vjaykrsna.nanoai.model.leap.LeapModelRemoteDataSource
+import com.vjaykrsna.nanoai.testing.assertSuccess
+import io.mockk.mockk
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,6 +45,7 @@ class ModelCatalogOfflineTest {
   private lateinit var failingSource: FailingModelCatalogSource
   private lateinit var dispatcher: TestDispatcher
   private lateinit var mockWebServer: MockWebServer
+  private lateinit var leapModelRemoteDataSource: LeapModelRemoteDataSource
 
   @Before
   fun setUp() {
@@ -54,11 +57,13 @@ class ModelCatalogOfflineTest {
       Room.inMemoryDatabaseBuilder(context, NanoAIDatabase::class.java)
         .allowMainThreadQueries()
         .build()
+    leapModelRemoteDataSource = mockk(relaxed = true)
     repository =
       ModelCatalogRepositoryImpl(
         database.modelPackageReadDao(),
         database.modelPackageWriteDao(),
         database.chatThreadDao(),
+        leapModelRemoteDataSource,
         context,
         Clock.System,
       )
@@ -81,10 +86,7 @@ class ModelCatalogOfflineTest {
 
       val result = useCase()
 
-      assertWithMessage("offline refresh should resolve with cached data")
-        .that(result.isSuccess)
-        .isTrue()
-      assertThat(result.exceptionOrNull()).isNull()
+      result.assertSuccess()
       assertThat(repository.getAllModels()).containsExactly(cached)
       assertThat(failingSource.fetchAttempts).isEqualTo(1)
       advanceUntilIdle()

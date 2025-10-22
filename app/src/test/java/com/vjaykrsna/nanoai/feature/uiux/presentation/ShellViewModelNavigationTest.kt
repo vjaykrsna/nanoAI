@@ -10,11 +10,10 @@ import com.vjaykrsna.nanoai.feature.uiux.domain.UndoActionUseCase
 import com.vjaykrsna.nanoai.feature.uiux.state.ModeId
 import com.vjaykrsna.nanoai.feature.uiux.state.RightPanel
 import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -41,9 +40,9 @@ class ShellViewModelNavigationTest {
       val settingsOperationsUseCase = mockk<SettingsOperationsUseCase>(relaxed = true)
 
       // Set up navigation use case to actually call repository
-      every { navigationOperationsUseCase.openMode(any()) } answers
+      coEvery { navigationOperationsUseCase.openMode(any()) } coAnswers
         {
-          runBlocking { fakeRepos.navigationRepository.openMode(firstArg()) }
+          fakeRepos.navigationRepository.openMode(firstArg())
         }
 
       val viewModel =
@@ -87,9 +86,9 @@ class ShellViewModelNavigationTest {
       val settingsOperationsUseCase = mockk<SettingsOperationsUseCase>(relaxed = true)
 
       // Set up navigation use case to actually call repository
-      every { navigationOperationsUseCase.toggleRightDrawer(any()) } answers
+      coEvery { navigationOperationsUseCase.toggleRightDrawer(any()) } coAnswers
         {
-          runBlocking { fakeRepos.navigationRepository.toggleRightDrawer(firstArg()) }
+          fakeRepos.navigationRepository.toggleRightDrawer(firstArg())
         }
 
       val viewModel =

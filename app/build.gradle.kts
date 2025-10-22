@@ -155,6 +155,7 @@ android {
       pixel6.device = "Pixel 6"
       pixel6.apiLevel = 34
       pixel6.systemImageSource = "aosp-atd"
+      pixel6.testedAbi = "x86_64"
       groups.create("ci") { targetDevices.add(pixel6) }
     }
   }
