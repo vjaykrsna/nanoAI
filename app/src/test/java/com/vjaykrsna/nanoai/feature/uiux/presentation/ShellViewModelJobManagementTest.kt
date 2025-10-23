@@ -227,7 +227,7 @@ class ShellViewModelJobManagementTest {
         {
           val payload = firstArg<com.vjaykrsna.nanoai.feature.uiux.state.UndoPayload>()
           if (payload.actionId.startsWith("queue-")) {
-            val jobIdString = payload.metadata["jobId"] as String
+            val jobIdString = requireNotNull(payload.metadata["jobId"] as? String) { "UndoPayload metadata missing or invalid jobId" }
             val jobId = UUID.fromString(jobIdString)
             fakeRepos.progressRepository.completeJob(jobId)
           }
