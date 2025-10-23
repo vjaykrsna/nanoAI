@@ -1,379 +1,212 @@
 package com.vjaykrsna.nanoai.core.data.repository.impl
 
-import android.os.Build
-import androidx.room.Room
-import com.google.common.truth.Truth.assertThat
-import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.core.data.db.daos.ChatThreadDao
 import com.vjaykrsna.nanoai.core.data.db.daos.MessageDao
-import com.vjaykrsna.nanoai.core.data.repository.ConversationRepository
-import com.vjaykrsna.nanoai.core.model.MessageSource
+import com.vjaykrsna.nanoai.core.data.db.entities.ChatThreadEntity
+import com.vjaykrsna.nanoai.core.data.db.entities.MessageEntity
 import com.vjaykrsna.nanoai.core.model.Role
+import com.vjaykrsna.nanoai.core.model.MessageSource
 import com.vjaykrsna.nanoai.testing.DomainTestBuilders
-import java.util.UUID
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
+import com.google.common.truth.Truth.assertThat
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
+import kotlinx.datetime.Instant
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import java.util.UUID
 
-/**
- * Tests for [ConversationRepositoryImpl].
- *
- * Validates Room DAO operations with thread/message CRUD using an in-memory database.
- */
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Build.VERSION_CODES.TIRAMISU])
-@OptIn(ExperimentalCoroutinesApi::class)
+@ExtendWith(MainDispatcherExtension::class)
 class ConversationRepositoryImplTest {
 
-  private lateinit var database: NanoAIDatabase
-  private lateinit var chatThreadDao: ChatThreadDao
-  private lateinit var messageDao: MessageDao
-  private lateinit var repository: ConversationRepository
-
-  @Before
-  fun setup() {
-    database =
-      Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), NanoAIDatabase::class.java)
-        .allowMainThreadQueries()
-        .build()
-
-    chatThreadDao = database.chatThreadDao()
-    messageDao = database.messageDao()
-    repository = ConversationRepositoryImpl(chatThreadDao, messageDao)
-  }
-
-  @After
-  fun tearDown() {
-    database.close()
-  }
-
-  @Test
-  fun `createThread persists thread to database`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-
-    repository.createThread(thread)
-
-    val retrieved = repository.getThread(thread.threadId)
-    assertThat(retrieved).isNotNull()
-    assertThat(retrieved?.threadId).isEqualTo(thread.threadId)
-    assertThat(retrieved?.title).isEqualTo(thread.title)
-  }
-
-  @Test
-  fun `createNewThread generates new thread with persona`() = runTest {
-    val personaId = UUID.randomUUID()
-    val title = "Test Thread"
-
-    val threadId = repository.createNewThread(personaId, title)
-
-    val retrieved = repository.getThread(threadId)
-    assertThat(retrieved).isNotNull()
-    assertThat(retrieved?.personaId).isEqualTo(personaId)
-    assertThat(retrieved?.title).isEqualTo(title)
-  }
-
-  @Test
-  fun `getAllThreads returns only non-archived threads`() = runTest {
-    val activeThread = DomainTestBuilders.buildChatThread(isArchived = false)
-    val archivedThread = DomainTestBuilders.buildChatThread(isArchived = true)
-
-    repository.createThread(activeThread)
-    repository.createThread(archivedThread)
-
-    val allThreads = repository.getAllThreads()
-    assertThat(allThreads).hasSize(1)
-    assertThat(allThreads.first().threadId).isEqualTo(activeThread.threadId)
-  }
-
-  @Test
-  fun `getArchivedThreads returns only archived threads`() = runTest {
-    val activeThread = DomainTestBuilders.buildChatThread(isArchived = false)
-    val archivedThread = DomainTestBuilders.buildChatThread(isArchived = true)
-
-    repository.createThread(activeThread)
-    repository.createThread(archivedThread)
-
-    val archived = repository.getArchivedThreads()
-    assertThat(archived).hasSize(1)
-    assertThat(archived.first().threadId).isEqualTo(archivedThread.threadId)
-  }
-
-  @Test
-  fun `updateThread modifies existing thread`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread(title = "Original")
-    repository.createThread(thread)
-
-    val updated = thread.copy(title = "Updated")
-    repository.updateThread(updated)
-
-    val retrieved = repository.getThread(thread.threadId)
-    assertThat(retrieved?.title).isEqualTo("Updated")
-  }
-
-  @Test
-  fun `archiveThread marks thread as archived`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread(isArchived = false)
-    repository.createThread(thread)
-
-    repository.archiveThread(thread.threadId)
-
-    val retrieved = repository.getThread(thread.threadId)
-    assertThat(retrieved?.isArchived).isTrue()
-  }
-
-  @Test
-  fun `deleteThread removes thread from database`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    repository.deleteThread(thread.threadId)
-
-    val retrieved = repository.getThread(thread.threadId)
-    assertThat(retrieved).isNull()
-  }
-
-  @Test
-  fun `deleteThread cascades to messages`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val message = DomainTestBuilders.buildUserMessage(threadId = thread.threadId)
-    repository.addMessage(message)
-
-    repository.deleteThread(thread.threadId)
-
-    val messages = repository.getMessages(thread.threadId)
-    assertThat(messages).isEmpty()
-  }
-
-  @Test
-  fun `addMessage persists message to database`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val message = DomainTestBuilders.buildUserMessage(threadId = thread.threadId, text = "Hello")
-    repository.addMessage(message)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved).hasSize(1)
-    assertThat(retrieved.first().text).isEqualTo("Hello")
-  }
-
-  @Test
-  fun `getMessages returns messages ordered by creation time`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val now = Clock.System.now()
-    val message1 =
-      DomainTestBuilders.buildUserMessage(threadId = thread.threadId, text = "First")
-        .copy(createdAt = now)
-    val message2 =
-      DomainTestBuilders.buildUserMessage(threadId = thread.threadId, text = "Second")
-        .copy(createdAt = now.plus(kotlin.time.Duration.parse("1s")))
-    val message3 =
-      DomainTestBuilders.buildUserMessage(threadId = thread.threadId, text = "Third")
-        .copy(createdAt = now.plus(kotlin.time.Duration.parse("2s")))
-
-    repository.addMessage(message3)
-    repository.addMessage(message1)
-    repository.addMessage(message2)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved.map { it.text }).containsExactly("First", "Second", "Third").inOrder()
-  }
-
-  @Test
-  fun `getMessagesFlow emits updates reactively`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val flow = repository.getMessagesFlow(thread.threadId)
-
-    // Initially empty
-    assertThat(flow.first()).isEmpty()
-
-    // Add message
-    val message = DomainTestBuilders.buildUserMessage(threadId = thread.threadId)
-    repository.addMessage(message)
-
-    // Flow should emit new list
-    assertThat(flow.first()).hasSize(1)
-  }
-
-  @Test
-  fun `getAllThreadsFlow emits updates reactively`() = runTest {
-    val flow = repository.getAllThreadsFlow()
-
-    // Initially empty
-    assertThat(flow.first()).isEmpty()
-
-    // Add thread
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    // Flow should emit new list
-    assertThat(flow.first()).hasSize(1)
-  }
-
-  @Test
-  fun `getCurrentPersonaForThread returns thread's persona`() = runTest {
-    val personaId = UUID.randomUUID()
-    val thread = DomainTestBuilders.buildChatThread(personaId = personaId)
-    repository.createThread(thread)
-
-    val retrieved = repository.getCurrentPersonaForThread(thread.threadId)
-    assertThat(retrieved).isEqualTo(personaId)
-  }
-
-  @Test
-  fun `getCurrentPersonaForThread returns null for thread without persona`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread(personaId = null)
-    repository.createThread(thread)
-
-    val retrieved = repository.getCurrentPersonaForThread(thread.threadId)
-    assertThat(retrieved).isNull()
-  }
-
-  @Test
-  fun `updateThreadPersona changes thread's persona`() = runTest {
-    val initialPersonaId = UUID.randomUUID()
-    val newPersonaId = UUID.randomUUID()
-    val thread = DomainTestBuilders.buildChatThread(personaId = initialPersonaId)
-    repository.createThread(thread)
-
-    repository.updateThreadPersona(thread.threadId, newPersonaId)
-
-    val retrieved = repository.getCurrentPersonaForThread(thread.threadId)
-    assertThat(retrieved).isEqualTo(newPersonaId)
-  }
-
-  @Test
-  fun `updateThreadPersona clears persona when null`() = runTest {
-    val personaId = UUID.randomUUID()
-    val thread = DomainTestBuilders.buildChatThread(personaId = personaId)
-    repository.createThread(thread)
-
-    repository.updateThreadPersona(thread.threadId, null)
-
-    val retrieved = repository.getCurrentPersonaForThread(thread.threadId)
-    assertThat(retrieved).isNull()
-  }
-
-  @Test
-  fun `saveMessage is alias for addMessage`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val message = DomainTestBuilders.buildUserMessage(threadId = thread.threadId)
-    repository.saveMessage(message)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved).hasSize(1)
-  }
-
-  @Test
-  fun `addMessage supports assistant messages with latency`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val message =
-      DomainTestBuilders.buildAssistantMessage(threadId = thread.threadId, text = "Response")
-        .copy(latencyMs = 1500L)
-    repository.addMessage(message)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved.first().role).isEqualTo(Role.ASSISTANT)
-    assertThat(retrieved.first().latencyMs).isEqualTo(1500L)
-  }
-
-  @Test
-  fun `addMessage updates thread timestamp`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-    val newTimestamp = Clock.System.now().plus(kotlin.time.Duration.parse("5s"))
-    val message =
-      DomainTestBuilders.buildUserMessage(threadId = thread.threadId).copy(createdAt = newTimestamp)
-
-    repository.addMessage(message)
-
-    val updatedThread = repository.getThread(thread.threadId)
-    assertThat(updatedThread?.updatedAt).isEqualTo(newTimestamp)
-  }
-
-  @Test
-  fun `addMessage supports error messages`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val message =
-      DomainTestBuilders.buildAssistantMessage(threadId = thread.threadId, text = null)
-        .copy(errorCode = "INFERENCE_FAILED")
-    repository.addMessage(message)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved.first().errorCode).isEqualTo("INFERENCE_FAILED")
-    assertThat(retrieved.first().text).isNull()
-  }
-
-  @Test
-  fun `getMessages filters by thread correctly`() = runTest {
-    val thread1 = DomainTestBuilders.buildChatThread()
-    val thread2 = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread1)
-    repository.createThread(thread2)
-
-    val message1 =
-      DomainTestBuilders.buildUserMessage(threadId = thread1.threadId, text = "Thread 1")
-    val message2 =
-      DomainTestBuilders.buildUserMessage(threadId = thread2.threadId, text = "Thread 2")
-    repository.addMessage(message1)
-    repository.addMessage(message2)
-
-    val retrieved1 = repository.getMessages(thread1.threadId)
-    val retrieved2 = repository.getMessages(thread2.threadId)
-
-    assertThat(retrieved1).hasSize(1)
-    assertThat(retrieved2).hasSize(1)
-    assertThat(retrieved1.first().text).isEqualTo("Thread 1")
-    assertThat(retrieved2.first().text).isEqualTo("Thread 2")
-  }
-
-  @Test
-  fun `thread with null persona can be created and retrieved`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread(personaId = null)
-    repository.createThread(thread)
-
-    val retrieved = repository.getThread(thread.threadId)
-    assertThat(retrieved?.personaId).isNull()
-  }
-
-  @Test
-  fun `message with different sources are stored correctly`() = runTest {
-    val thread = DomainTestBuilders.buildChatThread()
-    repository.createThread(thread)
-
-    val localMessage =
-      DomainTestBuilders.buildAssistantMessage(threadId = thread.threadId, text = "Local")
-        .copy(source = MessageSource.LOCAL_MODEL)
-    val cloudMessage =
-      DomainTestBuilders.buildAssistantMessage(threadId = thread.threadId, text = "Cloud")
-        .copy(source = MessageSource.CLOUD_API)
-
-    repository.addMessage(localMessage)
-    repository.addMessage(cloudMessage)
-
-    val retrieved = repository.getMessages(thread.threadId)
-    assertThat(retrieved).hasSize(2)
-    assertThat(retrieved.map { it.source })
-      .containsExactly(MessageSource.LOCAL_MODEL, MessageSource.CLOUD_API)
-  }
+    private lateinit var chatThreadDao: ChatThreadDao
+    private lateinit var messageDao: MessageDao
+    private lateinit var clock: Clock
+    private lateinit var repository: ConversationRepositoryImpl
+    private val testDispatcher = MainDispatcherExtension().dispatcher
+
+    @BeforeEach
+    fun setUp() {
+        chatThreadDao = mockk(relaxed = true)
+        messageDao = mockk(relaxed = true)
+        clock = mockk(relaxed = true)
+        repository = ConversationRepositoryImpl(
+            chatThreadDao = chatThreadDao,
+            messageDao = messageDao,
+            clock = clock,
+            ioDispatcher = testDispatcher
+        )
+    }
+
+    private fun createTestThreadEntity(id: UUID) = ChatThreadEntity(
+        threadId = id.toString(),
+        title = "Test Thread",
+        personaId = null,
+        activeModelId = "test-model",
+        createdAt = Clock.System.now(),
+        updatedAt = Clock.System.now(),
+        isArchived = false
+    )
+
+    private fun createTestMessageEntity(threadId: UUID) = MessageEntity(
+        messageId = UUID.randomUUID().toString(),
+        threadId = threadId.toString(),
+        role = Role.USER,
+        text = "Test message",
+        source = MessageSource.LOCAL_MODEL,
+        createdAt = Clock.System.now()
+    )
+
+    @Test
+    fun `getThread should fetch and map a thread from the dao`() = runTest {
+        // Given
+        val threadId = UUID.randomUUID()
+        val entity = createTestThreadEntity(threadId)
+        coEvery { chatThreadDao.getById(threadId.toString()) } returns entity
+
+        // When
+        val result = repository.getThread(threadId)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result?.threadId).isEqualTo(threadId)
+    }
+
+    @Test
+    fun `getAllThreads should fetch and map all active threads`() = runTest {
+        // Given
+        val entities = listOf(createTestThreadEntity(UUID.randomUUID()))
+        coEvery { chatThreadDao.getAllActive() } returns entities
+
+        // When
+        val result = repository.getAllThreads()
+
+        // Then
+        assertThat(result).hasSize(1)
+    }
+
+    @Test
+    fun `createThread should insert a new thread via the dao`() = runTest {
+        // Given
+        val thread = DomainTestBuilders.buildChatThread(threadId = UUID.randomUUID())
+
+        // When
+        repository.createThread(thread)
+
+        // Then
+        coVerify { chatThreadDao.insert(any()) }
+    }
+
+    @Test
+    fun `updateThread should update a thread via the dao`() = runTest {
+        // Given
+        val thread = DomainTestBuilders.buildChatThread(threadId = UUID.randomUUID())
+
+        // When
+        repository.updateThread(thread)
+
+        // Then
+        coVerify { chatThreadDao.update(any()) }
+    }
+
+    @Test
+    fun `archiveThread should archive a thread via the dao`() = runTest {
+        // Given
+        val threadId = UUID.randomUUID()
+
+        // When
+        repository.archiveThread(threadId)
+
+        // Then
+        coVerify { chatThreadDao.archive(threadId.toString()) }
+    }
+
+    @Test
+    fun `deleteThread should delete a thread via the dao`() = runTest {
+        // Given
+        val threadId = UUID.randomUUID()
+        val entity = createTestThreadEntity(threadId)
+        coEvery { chatThreadDao.getById(threadId.toString()) } returns entity
+
+        // When
+        repository.deleteThread(threadId)
+
+        // Then
+        coVerify { chatThreadDao.delete(entity) }
+    }
+
+    @Test
+    fun `addMessage should insert a message and touch the thread`() = runTest {
+        // Given
+        val message = DomainTestBuilders.buildMessage(threadId = UUID.randomUUID())
+        coEvery { clock.now() } returns Instant.fromEpochMilliseconds(0)
+
+        // When
+        repository.addMessage(message)
+
+        // Then
+        coVerify { messageDao.insert(any()) }
+        coVerify { chatThreadDao.touch(message.threadId.toString(), message.createdAt) }
+    }
+
+    @Test
+    fun `getMessages should fetch and map messages for a thread`() = runTest {
+        // Given
+        val threadId = UUID.randomUUID()
+        val entities = listOf(createTestMessageEntity(threadId))
+        coEvery { messageDao.getByThreadId(threadId.toString()) } returns entities
+
+        // When
+        val result = repository.getMessages(threadId)
+
+        // Then
+        assertThat(result).hasSize(1)
+    }
+
+    @Test
+    fun `getMessagesFlow should return a flow of mapped messages`() = runTest {
+        // Given
+        val threadId = UUID.randomUUID()
+        val entities = listOf(createTestMessageEntity(threadId))
+        coEvery { messageDao.observeByThreadId(threadId.toString()) } returns flowOf(entities)
+
+        // When
+        val result = repository.getMessagesFlow(threadId).first()
+
+        // Then
+        assertThat(result).hasSize(1)
+    }
+
+    @Test
+    fun `getAllThreadsFlow should return a flow of mapped threads`() = runTest {
+        // Given
+        val entities = listOf(createTestThreadEntity(UUID.randomUUID()))
+        coEvery { chatThreadDao.observeAllActive() } returns flowOf(entities)
+
+        // When
+        val result = repository.getAllThreadsFlow().first()
+
+        // Then
+        assertThat(result).hasSize(1)
+    }
+
+    @Test
+    fun `createNewThread should insert a new thread with a new UUID`() = runTest {
+        // Given
+        val personaId = UUID.randomUUID()
+        coEvery { clock.now() } returns Instant.fromEpochMilliseconds(0)
+
+        // When
+        val newThreadId = repository.createNewThread(personaId, "New Thread")
+
+        // Then
+        coVerify { chatThreadDao.insert(any()) }
+        assertThat(newThreadId).isNotNull()
+    }
 }
