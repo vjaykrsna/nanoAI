@@ -77,6 +77,7 @@ internal object UiUxDomainReflection {
     pinnedTools: List<String> = emptyList(),
     commandPaletteRecents: List<String> = emptyList(),
     connectivityBannerLastDismissed: Instant? = null,
+    voiceInputEnabled: Boolean = false,
   ): Any {
     val clazz = loadClass(UI_PREFERENCES)
     val ctor = preferredConstructor(clazz)
@@ -90,6 +91,7 @@ internal object UiUxDomainReflection {
           pinnedTools,
           commandPaletteRecents,
           connectivityBannerLastDismissed,
+          voiceInputEnabled,
         )
       }
       5 ->
@@ -99,6 +101,15 @@ internal object UiUxDomainReflection {
           pinnedTools,
           commandPaletteRecents,
           connectivityBannerLastDismissed,
+        )
+      6 ->
+        ctor.newInstance(
+          themePreference,
+          visualDensity,
+          pinnedTools,
+          commandPaletteRecents,
+          connectivityBannerLastDismissed,
+          voiceInputEnabled,
         )
       else -> error("Unsupported UiPreferencesSnapshot constructor arity ${ctor.parameterCount}")
     }
@@ -184,6 +195,15 @@ internal object UiUxDomainReflection {
           resolvedCommandRecents,
           resolvedConnectivityDismissed,
         )
+      6 ->
+        ctor.newInstance(
+          resolvedTheme,
+          resolvedDensity,
+          resolvedPinned,
+          resolvedCommandRecents,
+          resolvedConnectivityDismissed,
+          false, // voiceInputEnabled defaults to false
+        )
       else -> error("Unsupported UiPreferencesSnapshot constructor arity ${ctor.parameterCount}")
     }
   }
@@ -241,6 +261,7 @@ internal object UiUxDomainReflection {
     pinnedTools: List<String>,
     commandPaletteRecents: List<String>,
     connectivityBannerLastDismissed: Instant?,
+    voiceInputEnabled: Boolean = false,
   ): Any {
     val method =
       baseline.javaClass.methods.firstOrNull { method ->
@@ -255,6 +276,16 @@ internal object UiUxDomainReflection {
           pinnedTools,
           commandPaletteRecents,
           connectivityBannerLastDismissed,
+        )
+      6 ->
+        method.invoke(
+          baseline,
+          themePreference,
+          visualDensity,
+          pinnedTools,
+          commandPaletteRecents,
+          connectivityBannerLastDismissed,
+          voiceInputEnabled,
         )
       else -> error("Unsupported UiPreferencesSnapshot#copy arity ${method.parameterCount}")
     }

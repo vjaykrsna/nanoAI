@@ -1,12 +1,7 @@
 package com.vjaykrsna.nanoai.feature.uiux.presentation
 
 import com.google.common.truth.Truth.assertThat
-import com.vjaykrsna.nanoai.feature.uiux.domain.ConnectivityOperationsUseCase
-import com.vjaykrsna.nanoai.feature.uiux.domain.JobOperationsUseCase
 import com.vjaykrsna.nanoai.feature.uiux.domain.NavigationOperationsUseCase
-import com.vjaykrsna.nanoai.feature.uiux.domain.QueueJobUseCase
-import com.vjaykrsna.nanoai.feature.uiux.domain.SettingsOperationsUseCase
-import com.vjaykrsna.nanoai.feature.uiux.domain.UndoActionUseCase
 import com.vjaykrsna.nanoai.feature.uiux.ui.shell.ShellUiEvent
 import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
 import io.mockk.coEvery
@@ -29,14 +24,7 @@ class ShellViewModelNavigationTest {
   fun openMode_closesDrawersAndHidesPalette() =
     runTest(dispatcher) {
       val fakeRepos = createFakeRepositories()
-      val actionProvider = createFakeCommandPaletteActionProvider()
-      val progressCoordinator = createFakeProgressCenterCoordinator()
       val navigationOperationsUseCase = mockk<NavigationOperationsUseCase>(relaxed = true)
-      val connectivityOperationsUseCase = mockk<ConnectivityOperationsUseCase>(relaxed = true)
-      val queueJobUseCase = mockk<QueueJobUseCase>(relaxed = true)
-      val jobOperationsUseCase = mockk<JobOperationsUseCase>(relaxed = true)
-      val undoActionUseCase = mockk<UndoActionUseCase>(relaxed = true)
-      val settingsOperationsUseCase = mockk<SettingsOperationsUseCase>(relaxed = true)
 
       // Mock sub-ViewModels
       val navigationViewModel = mockk<NavigationViewModel>(relaxed = true)
@@ -53,18 +41,6 @@ class ShellViewModelNavigationTest {
       val viewModel =
         ShellViewModel(
           fakeRepos.navigationRepository,
-          fakeRepos.connectivityRepository,
-          fakeRepos.themeRepository,
-          fakeRepos.progressRepository,
-          fakeRepos.userProfileRepository,
-          actionProvider,
-          progressCoordinator,
-          navigationOperationsUseCase,
-          connectivityOperationsUseCase,
-          queueJobUseCase,
-          jobOperationsUseCase,
-          undoActionUseCase,
-          settingsOperationsUseCase,
           navigationViewModel,
           connectivityViewModel,
           progressViewModel,
@@ -85,14 +61,7 @@ class ShellViewModelNavigationTest {
   fun toggleRightDrawer_setsPanelAndReflectsInState() =
     runTest(dispatcher) {
       val fakeRepos = createFakeRepositories()
-      val actionProvider = createFakeCommandPaletteActionProvider()
-      val progressCoordinator = createFakeProgressCenterCoordinator()
       val navigationOperationsUseCase = mockk<NavigationOperationsUseCase>(relaxed = true)
-      val connectivityOperationsUseCase = mockk<ConnectivityOperationsUseCase>(relaxed = true)
-      val queueJobUseCase = mockk<QueueJobUseCase>(relaxed = true)
-      val jobOperationsUseCase = mockk<JobOperationsUseCase>(relaxed = true)
-      val undoActionUseCase = mockk<UndoActionUseCase>(relaxed = true)
-      val settingsOperationsUseCase = mockk<SettingsOperationsUseCase>(relaxed = true)
 
       // Mock sub-ViewModels
       val navigationViewModel = mockk<NavigationViewModel>(relaxed = true)
@@ -109,18 +78,6 @@ class ShellViewModelNavigationTest {
       val viewModel =
         ShellViewModel(
           fakeRepos.navigationRepository,
-          fakeRepos.connectivityRepository,
-          fakeRepos.themeRepository,
-          fakeRepos.progressRepository,
-          fakeRepos.userProfileRepository,
-          actionProvider,
-          progressCoordinator,
-          navigationOperationsUseCase,
-          connectivityOperationsUseCase,
-          queueJobUseCase,
-          jobOperationsUseCase,
-          undoActionUseCase,
-          settingsOperationsUseCase,
           navigationViewModel,
           connectivityViewModel,
           progressViewModel,

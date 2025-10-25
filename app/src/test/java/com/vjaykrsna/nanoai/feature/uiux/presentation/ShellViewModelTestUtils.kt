@@ -215,6 +215,11 @@ internal class FakeThemeRepository : com.vjaykrsna.nanoai.core.data.repository.T
   ) {
     uiPreferenceSnapshotFlow.value = uiPreferenceSnapshotFlow.value.copy(density = density)
   }
+
+  override suspend fun updateHighContrastEnabled(enabled: Boolean) {
+    uiPreferenceSnapshotFlow.value =
+      uiPreferenceSnapshotFlow.value.copy(highContrastEnabled = enabled)
+  }
 }
 
 internal class FakeProgressRepository :

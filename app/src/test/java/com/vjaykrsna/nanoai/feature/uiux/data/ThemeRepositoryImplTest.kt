@@ -1,6 +1,7 @@
 package com.vjaykrsna.nanoai.feature.uiux.data
 
 import com.google.common.truth.Truth.assertThat
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.data.repository.ThemeRepository
 import com.vjaykrsna.nanoai.core.data.repository.UserProfileRepository
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
@@ -23,17 +24,20 @@ class ThemeRepositoryImplTest {
   @JvmField @RegisterExtension val mainDispatcherExtension = MainDispatcherExtension()
 
   private lateinit var userProfileRepository: UserProfileRepository
+  private lateinit var uiPreferencesStore: UiPreferencesStore
   private lateinit var repository: ThemeRepositoryImpl
 
   @BeforeEach
   fun setUp() {
     userProfileRepository = mockk(relaxed = true)
+    uiPreferencesStore = mockk(relaxed = true)
   }
 
   private fun createRepository(initialState: UiPreferencesSnapshot): ThemeRepositoryImpl {
     coEvery { userProfileRepository.observePreferences() } returns flowOf(initialState)
     return ThemeRepositoryImpl(
       userProfileRepository = userProfileRepository,
+      uiPreferencesStore = uiPreferencesStore,
       ioDispatcher = mainDispatcherExtension.dispatcher,
     )
   }

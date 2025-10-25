@@ -1,6 +1,10 @@
 package com.vjaykrsna.nanoai.feature.uiux.presentation
 
 import com.google.common.truth.Truth.assertThat
+import com.vjaykrsna.nanoai.feature.uiux.domain.QueueJobUseCase
+import com.vjaykrsna.nanoai.feature.uiux.domain.UndoActionUseCase
+import com.vjaykrsna.nanoai.feature.uiux.ui.shell.ShellUiEvent
+import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
 import io.mockk.*
 import java.time.Duration
 import java.time.Instant
@@ -13,6 +17,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
+private fun jobLabel(job: ProgressJob): String =
+  when (job.type) {
+    JobType.IMAGE_GENERATION -> "Image generation"
+    JobType.AUDIO_RECORDING -> "Audio recording"
+    JobType.MODEL_DOWNLOAD -> "Model download"
+    JobType.TEXT_GENERATION -> "Text generation"
+    JobType.TRANSLATION -> "Translation"
+    JobType.OTHER -> "Background task"
+  }
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ShellViewModelJobUndoTest {
   private val dispatcher = StandardTestDispatcher()
@@ -23,10 +37,6 @@ class ShellViewModelJobUndoTest {
   fun undoAction_clearsPendingJobAndUndoPayload() =
     runTest(dispatcher) {
       val fakeRepos = createFakeRepositories()
-      val actionProvider = createFakeCommandPaletteActionProvider()
-      val progressCoordinator = createFakeProgressCenterCoordinator()
-      val navigationOperationsUseCase = mockk<NavigationOperationsUseCase>(relaxed = true)
-      val connectivityOperationsUseCase = mockk<ConnectivityOperationsUseCase>(relaxed = true)
       val queueJobUseCase = mockk<QueueJobUseCase>()
       coEvery { queueJobUseCase.execute(any()) } coAnswers
         {
@@ -47,7 +57,6 @@ class ShellViewModelJobUndoTest {
             )
           )
         }
-      val jobOperationsUseCase = mockk<JobOperationsUseCase>(relaxed = true)
       val undoActionUseCase = mockk<UndoActionUseCase>()
       coEvery { undoActionUseCase.execute(any()) } coAnswers
         {
@@ -59,7 +68,6 @@ class ShellViewModelJobUndoTest {
           }
           fakeRepos.navigationRepository.recordUndoPayload(null)
         }
-      val settingsOperationsUseCase = mockk<SettingsOperationsUseCase>(relaxed = true)
 
       // Mock sub-ViewModels
       val navigationViewModel = mockk<NavigationViewModel>(relaxed = true)
@@ -70,18 +78,6 @@ class ShellViewModelJobUndoTest {
       val viewModel =
         ShellViewModel(
           fakeRepos.navigationRepository,
-          fakeRepos.connectivityRepository,
-          fakeRepos.themeRepository,
-          fakeRepos.progressRepository,
-          fakeRepos.userProfileRepository,
-          actionProvider,
-          progressCoordinator,
-          navigationOperationsUseCase,
-          connectivityOperationsUseCase,
-          queueJobUseCase,
-          jobOperationsUseCase,
-          undoActionUseCase,
-          settingsOperationsUseCase,
           navigationViewModel,
           connectivityViewModel,
           progressViewModel,

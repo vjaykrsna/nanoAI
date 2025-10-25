@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.data.preferences.DisclaimerExposureState
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreferenceStore
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferences
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.feature.uiux.domain.ObserveUserProfileUseCase
 import com.vjaykrsna.nanoai.feature.uiux.presentation.AppViewModel
@@ -29,11 +31,16 @@ class AppViewModelTest {
 
   @MockK private lateinit var privacyPreferenceStore: PrivacyPreferenceStore
 
+  @MockK private lateinit var uiPreferencesStore: UiPreferencesStore
+
   private lateinit var appViewModel: AppViewModel
 
   @Before
   fun setUp() {
     MockKAnnotations.init(this, relaxed = true)
+    // Default UI preferences mock
+    val uiPrefs = mockk<UiPreferences>(relaxed = true)
+    every { uiPreferencesStore.uiPreferences } returns MutableStateFlow(uiPrefs)
   }
 
   @Test
@@ -59,7 +66,8 @@ class AppViewModelTest {
     every { privacyPreferenceStore.disclaimerExposure } returns MutableStateFlow(disclaimerState)
 
     // When
-    appViewModel = AppViewModel(observeUserProfileUseCase, privacyPreferenceStore)
+    appViewModel =
+      AppViewModel(observeUserProfileUseCase, privacyPreferenceStore, uiPreferencesStore)
 
     // Then
     appViewModel.uiState.test {
@@ -93,7 +101,8 @@ class AppViewModelTest {
     every { privacyPreferenceStore.disclaimerExposure } returns MutableStateFlow(disclaimerState)
 
     // When
-    appViewModel = AppViewModel(observeUserProfileUseCase, privacyPreferenceStore)
+    appViewModel =
+      AppViewModel(observeUserProfileUseCase, privacyPreferenceStore, uiPreferencesStore)
 
     // Then - Should not crash and should have default state
     appViewModel.uiState.test {
@@ -125,7 +134,8 @@ class AppViewModelTest {
     every { privacyPreferenceStore.disclaimerExposure } returns MutableStateFlow(disclaimerState)
 
     // When
-    appViewModel = AppViewModel(observeUserProfileUseCase, privacyPreferenceStore)
+    appViewModel =
+      AppViewModel(observeUserProfileUseCase, privacyPreferenceStore, uiPreferencesStore)
 
     // Then
     appViewModel.uiState.test {
@@ -156,7 +166,8 @@ class AppViewModelTest {
     every { observeUserProfileUseCase.flow } returns MutableStateFlow(userProfileResult)
     every { privacyPreferenceStore.disclaimerExposure } returns MutableStateFlow(disclaimerState)
 
-    appViewModel = AppViewModel(observeUserProfileUseCase, privacyPreferenceStore)
+    appViewModel =
+      AppViewModel(observeUserProfileUseCase, privacyPreferenceStore, uiPreferencesStore)
 
     // When
     appViewModel.onDisclaimerAccepted()
@@ -187,7 +198,8 @@ class AppViewModelTest {
     every { observeUserProfileUseCase.flow } returns MutableStateFlow(userProfileResult)
     every { privacyPreferenceStore.disclaimerExposure } returns MutableStateFlow(disclaimerState)
 
-    appViewModel = AppViewModel(observeUserProfileUseCase, privacyPreferenceStore)
+    appViewModel =
+      AppViewModel(observeUserProfileUseCase, privacyPreferenceStore, uiPreferencesStore)
 
     // When
     appViewModel.onDisclaimerAccepted()
