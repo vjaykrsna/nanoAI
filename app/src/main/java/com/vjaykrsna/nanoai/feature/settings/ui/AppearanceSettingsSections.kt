@@ -3,24 +3,13 @@ package com.vjaykrsna.nanoai.feature.settings.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,42 +20,55 @@ import com.vjaykrsna.nanoai.feature.uiux.ui.components.ThemePreferenceChips
 import com.vjaykrsna.nanoai.feature.uiux.ui.components.VisualDensityChips
 
 @Composable
-internal fun AppearanceThemeHeader(modifier: Modifier = Modifier) {
-  SettingsSection(title = "Theme", modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Text(
-        text = "Choose how the app looks and feels with theme and contrast options.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
-}
-
-@Composable
 internal fun AppearanceThemeCard(
   uiUxState: SettingsUiUxState,
   onThemeChange: (ThemePreference) -> Unit,
   onHighContrastChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
+  SettingsInteractiveCard(
+    title = "Theme & High Contrast",
+    modifier = modifier,
+    infoContent = {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = "Theme",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
+          text =
+            "Theme options control the overall appearance and color scheme of the app interface.",
+          style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+          text = "Available themes:",
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.primary,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+          Text(
+            "• System: Matches your device's theme setting",
+            style = MaterialTheme.typography.bodySmall,
+          )
+          Text(
+            "• Light: Clean, bright interface for well-lit environments",
+            style = MaterialTheme.typography.bodySmall,
+          )
+          Text(
+            "• Dark: Easy on the eyes in low-light conditions",
+            style = MaterialTheme.typography.bodySmall,
+          )
+          Text(
+            "• AMOLED: Pure black background for OLED screens",
+            style = MaterialTheme.typography.bodySmall,
+          )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+          text =
+            "High contrast increases color differences for better accessibility. Use this if you have visual impairments or are in bright sunlight.",
+          style = MaterialTheme.typography.bodyMedium,
         )
       }
-
+    },
+  ) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
       ThemePreferenceChips(
         selected = uiUxState.themePreference,
         onSelect = onThemeChange,
@@ -93,19 +95,6 @@ internal fun AppearanceThemeCard(
 }
 
 @Composable
-internal fun AppearanceDensityHeader(modifier: Modifier = Modifier) {
-  SettingsSection(title = "Layout density", modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Text(
-        text = "Choose how compact or spacious the app interface feels.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
-}
-
-@Composable
 internal fun AppearanceDensityCard(
   uiUxState: SettingsUiUxState,
   onDensityChange: (VisualDensity) -> Unit,
@@ -113,141 +102,71 @@ internal fun AppearanceDensityCard(
 ) {
   val selectedDensity =
     if (uiUxState.compactModeEnabled) VisualDensity.COMPACT else VisualDensity.DEFAULT
-  var showInfoDialog by remember { mutableStateOf(false) }
 
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
+  SettingsInteractiveCard(
+    title = "Layout Density",
+    modifier = modifier,
+    infoContent = {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = "Layout density",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
+          text = "Layout density controls how much space UI elements take up on screen.",
+          style = MaterialTheme.typography.bodyMedium,
         )
-        IconButton(onClick = { showInfoDialog = true }, modifier = Modifier.align(Alignment.Top)) {
-          Icon(
-            Icons.Filled.Info,
-            contentDescription = "Show density options info",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = "Default:",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+          )
+          Text(
+            text =
+              "Standard spacing between elements. Good balance of information density and readability.",
+            style = MaterialTheme.typography.bodySmall,
+          )
+          Text(
+            text = "Compact:",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+          )
+          Text(
+            text =
+              "Tighter spacing for more content on screen. Better for small screens or users who want to see more information at once.",
+            style = MaterialTheme.typography.bodySmall,
           )
         }
-      }
-
-      VisualDensityChips(
-        selected = selectedDensity,
-        onSelect = onDensityChange,
-        modifier = Modifier.fillMaxWidth(),
-        onUnsupportedSelect = null,
-      )
-
-      Text(
-        text = "Spacious mode coming soon and will enable a more relaxed layout for tablets.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
-
-  if (showInfoDialog) {
-    AlertDialog(
-      onDismissRequest = { showInfoDialog = false },
-      title = { Text(text = "Layout Density", style = MaterialTheme.typography.headlineSmall) },
-      text = {
         Text(
-          text =
-            "Choose how compact or spacious the app interface feels. Compact mode makes elements tighter while spacious mode (coming soon) will enable a more relaxed layout for tablets.",
-          style = MaterialTheme.typography.bodyLarge,
+          text = "Spacious mode coming in future updates for tablet users.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-      },
-      confirmButton = { TextButton(onClick = { showInfoDialog = false }) { Text("OK") } },
+      }
+    },
+  ) {
+    VisualDensityChips(
+      selected = selectedDensity,
+      onSelect = onDensityChange,
+      modifier = Modifier.fillMaxWidth(),
+      onUnsupportedSelect = null,
     )
   }
 }
 
 @Composable
-internal fun AppearanceTypographyHeader(modifier: Modifier = Modifier) {
-  SettingsSection(title = "Typography & spacing", modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Text(
-        text = "Customize font scale and text spacing throughout the app.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
-}
-
-@Composable
 internal fun AppearanceTypographyCard(modifier: Modifier = Modifier) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = "Typography & spacing",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
-
-      Text(
-        text = "Adjusting font scale and chat bubble density will land in Phase 2.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-
-      SettingsPlaceholderCard(
-        description = "Custom font scale presets and per-surface density controls.",
-        supportingText =
-          "Specs for typography tokens live in specs/003-UI-UX/plan.md " +
-            "and will be wired once shared theming surfaces are ready.",
-      )
-    }
-  }
+  SettingsInfoCard(
+    title = "Typography & Spacing",
+    infoText =
+      "Custom font scaling and text spacing controls will be available in a future update. Currently uses system font settings and standard Material 3 typography.",
+    modifier = modifier,
+  )
 }
 
 @Composable
 internal fun AppearanceAnimationPreferencesCard(modifier: Modifier = Modifier) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = "Animation preferences",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
-
-      Text(
-        text =
-          "Control motion effects and transition speed for better accessibility and reduced motion.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-
-      SettingsPlaceholderCard(
-        description = "Animation speed, transition effects, and reduced motion controls.",
-        supportingText = "Planning for domain-specific animation tokens in the UI build system.",
-      )
-    }
-  }
+  SettingsInfoCard(
+    title = "Animation Preferences",
+    infoText =
+      "Animation speed controls and reduced motion settings will be available in a future update. Currently uses standard Material 3 motion guidelines for optimal user experience.",
+    modifier = modifier,
+  )
 }
