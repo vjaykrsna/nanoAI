@@ -10,8 +10,6 @@ enum class ThemePreference {
   LIGHT,
   DARK,
   AMOLED, // Pure black backgrounds for OLED power savings
-  HIGH_CONTRAST_LIGHT, // High contrast light mode for accessibility (WCAG AAA)
-  HIGH_CONTRAST_DARK, // High contrast dark mode for accessibility (WCAG AAA)
   SYSTEM;
 
   companion object {

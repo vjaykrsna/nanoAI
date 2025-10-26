@@ -3,7 +3,6 @@ package com.vjaykrsna.nanoai.feature.library.data.daos
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.feature.library.data.catalog.DeliveryType
@@ -19,24 +18,20 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Instant
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalCoroutinesApi::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class DownloadTaskDaoTest {
-
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
 
   private lateinit var context: Context
   private lateinit var database: NanoAIDatabase
   private lateinit var dao: DownloadTaskDao
   private lateinit var modelPackageWriteDao: ModelPackageWriteDao
 
-  @Before
+  @BeforeEach
   fun setUp() {
     context = ApplicationProvider.getApplicationContext()
     database =
@@ -47,7 +42,7 @@ class DownloadTaskDaoTest {
     modelPackageWriteDao = database.modelPackageWriteDao()
   }
 
-  @After
+  @AfterEach
   fun tearDown() {
     database.close()
   }

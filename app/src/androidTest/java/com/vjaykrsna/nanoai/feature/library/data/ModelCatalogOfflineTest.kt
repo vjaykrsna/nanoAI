@@ -3,7 +3,6 @@ package com.vjaykrsna.nanoai.feature.library.data
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
@@ -14,6 +13,7 @@ import com.vjaykrsna.nanoai.feature.library.data.leap.LeapModelRemoteDataSource
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
 import com.vjaykrsna.nanoai.feature.library.domain.RefreshModelCatalogUseCase
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import com.vjaykrsna.nanoai.testing.assertSuccess
 import io.mockk.mockk
 import java.io.IOException
@@ -31,11 +31,10 @@ import kotlinx.datetime.Instant
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalCoroutinesApi::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ModelCatalogOfflineTest {
 
   private lateinit var context: Context

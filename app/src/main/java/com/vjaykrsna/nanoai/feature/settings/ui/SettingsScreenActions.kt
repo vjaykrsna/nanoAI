@@ -23,6 +23,7 @@ internal data class SettingsScreenActions(
   val onDismissMigrationSuccess: () -> Unit,
   val onThemePreferenceChange: (ThemePreference) -> Unit,
   val onVisualDensityChange: (VisualDensity) -> Unit,
+  val onHighContrastChange: (Boolean) -> Unit,
   val onHuggingFaceLoginClick: () -> Unit,
   val onHuggingFaceApiKeyClick: () -> Unit,
   val onHuggingFaceDisconnectClick: () -> Unit,
@@ -104,6 +105,7 @@ internal fun createSettingsActions(
         VisualDensity.EXPANDED -> viewModel.setCompactMode(false)
       }
     },
+    onHighContrastChange = viewModel::setHighContrastEnabled,
     onHuggingFaceLoginClick = { dialogState.showHuggingFaceLoginDialog.value = true },
     onHuggingFaceApiKeyClick = { dialogState.showHuggingFaceApiKeyDialog.value = true },
     onHuggingFaceDisconnectClick = viewModel::disconnectHuggingFaceAccount,

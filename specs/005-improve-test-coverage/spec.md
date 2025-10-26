@@ -48,6 +48,7 @@ As the release steward for nanoAI, I need trustworthy, automated insight into ho
 - **FR-004**: Data access paths (Room DAOs, repositories, caching rules) MUST have automated checks that confirm read/write integrity, error propagation, and offline resilience promises.
 - **FR-005**: Coverage reporting MUST surface trend data and highlight areas below the target threshold so leadership can prioritize subsequent hardening work.
 - **FR-006**: Coverage targets MUST meet or exceed [NEEDS CLARIFICATION: specify percentage or metric thresholds for each layer].
+- **FR-007**: All JUnit6 migration changes MUST undergo peer review verifying constitution compliance; blockers MUST be escalated promptly with clear communication.
 
 ## Clarifications
 
@@ -103,6 +104,6 @@ As the release steward for nanoAI, I need trustworthy, automated insight into ho
 - [ ] Review checklist passed
 
 ---
-*Align with Constitution v1.4.0 (see `.specify/memory/constitution.md` for principles)*
+*Align with Constitution v1.4.1 (see `.specify/memory/constitution.md` for principles)*
 
 ---

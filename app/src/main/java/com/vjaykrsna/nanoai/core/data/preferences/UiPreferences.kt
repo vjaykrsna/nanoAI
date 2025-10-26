@@ -21,6 +21,7 @@ data class UiPreferences(
   val pinnedToolIds: List<String>,
   val commandPaletteRecents: List<String>,
   val connectivityBannerLastDismissed: Instant?,
+  val highContrastEnabled: Boolean = false,
 ) {
   constructor() :
     this(
@@ -29,6 +30,7 @@ data class UiPreferences(
       pinnedToolIds = emptyList(),
       commandPaletteRecents = emptyList(),
       connectivityBannerLastDismissed = null,
+      highContrastEnabled = false,
     )
 }
 
@@ -45,6 +47,7 @@ fun UiPreferences.toDomainSnapshot(): UiPreferencesSnapshot =
     pinnedTools = pinnedToolIds,
     commandPaletteRecents = commandPaletteRecents,
     connectivityBannerLastDismissed = connectivityBannerLastDismissed,
+    highContrastEnabled = highContrastEnabled,
   )
 
 /**
@@ -59,4 +62,5 @@ fun UiPreferencesSnapshot.toDataStorePreferences(): UiPreferences =
     pinnedToolIds = pinnedTools,
     commandPaletteRecents = commandPaletteRecents,
     connectivityBannerLastDismissed = connectivityBannerLastDismissed,
+    highContrastEnabled = highContrastEnabled,
   )

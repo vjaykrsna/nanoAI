@@ -7,7 +7,6 @@ import com.vjaykrsna.nanoai.core.data.repository.ThemeRepository
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.core.domain.model.uiux.VisualDensity
 import com.vjaykrsna.nanoai.feature.uiux.domain.SettingsOperationsUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** ViewModel responsible for theme and UI preference management. */
-@HiltViewModel
 class ThemeViewModel
 @Inject
 constructor(
@@ -43,5 +41,10 @@ constructor(
   /** Updates the visual density preference for the active user. */
   fun updateVisualDensity(density: VisualDensity) {
     viewModelScope.launch { settingsOperationsUseCase.updateVisualDensity(density) }
+  }
+
+  /** Updates the high contrast enabled preference for the active user. */
+  fun updateHighContrastEnabled(enabled: Boolean) {
+    viewModelScope.launch { themeRepository.updateHighContrastEnabled(enabled) }
   }
 }

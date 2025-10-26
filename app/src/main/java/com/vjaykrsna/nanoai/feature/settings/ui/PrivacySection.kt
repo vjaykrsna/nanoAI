@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -31,15 +30,12 @@ internal fun PrivacySection(
   privacyPreferences: PrivacyPreference,
   onTelemetryToggle: (Boolean) -> Unit,
   onRetentionPolicyChange: (RetentionPolicy) -> Unit,
-  modifier: Modifier = Modifier,
 ) {
-  SettingsSection(title = "Privacy & Telemetry", modifier = modifier) {
-    PrivacySettings(
-      preferences = privacyPreferences,
-      onTelemetryToggle = onTelemetryToggle,
-      onRetentionPolicyChange = onRetentionPolicyChange,
-    )
-  }
+  PrivacySettings(
+    preferences = privacyPreferences,
+    onTelemetryToggle = onTelemetryToggle,
+    onRetentionPolicyChange = onRetentionPolicyChange,
+  )
 }
 
 @Composable
@@ -59,16 +55,18 @@ internal fun PrivacySettings(
       modifier = Modifier.fillMaxWidth().padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      TelemetryPreferenceRow(telemetryOptIn = telemetryOptIn, onTelemetryToggle = onTelemetryToggle)
+      Text(
+        text = "Privacy & Telemetry",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+      )
 
-      HorizontalDivider()
+      TelemetryPreferenceRow(telemetryOptIn = telemetryOptIn, onTelemetryToggle = onTelemetryToggle)
 
       RetentionPolicySection(
         selectedPolicy = selectedPolicy,
         onRetentionPolicyChange = onRetentionPolicyChange,
       )
-
-      HorizontalDivider()
 
       PrivacyNoticeSection()
     }

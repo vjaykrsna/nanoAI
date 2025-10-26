@@ -7,18 +7,17 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.common.NanoAIResult
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
 import com.vjaykrsna.nanoai.testing.DomainTestBuilders
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import io.mockk.coEvery
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ModelLibraryScreenStructureTest : BaseModelLibraryScreenTest() {
 
   @Test

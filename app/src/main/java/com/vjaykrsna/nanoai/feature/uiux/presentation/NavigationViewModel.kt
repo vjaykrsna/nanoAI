@@ -1,172 +1,134 @@
+@file:OptIn(
+  androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi::class
+)
+
 package com.vjaykrsna.nanoai.feature.uiux.presentation
 
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vjaykrsna.nanoai.core.common.MainImmediateDispatcher
 import com.vjaykrsna.nanoai.core.data.repository.NavigationRepository
-import com.vjaykrsna.nanoai.core.data.repository.UserProfileRepository
-import com.vjaykrsna.nanoai.core.domain.model.uiux.UIStateSnapshot
 import com.vjaykrsna.nanoai.feature.uiux.domain.NavigationOperationsUseCase
-import com.vjaykrsna.nanoai.feature.uiux.domain.UIUX_DEFAULT_USER_ID
-import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
-/** ViewModel responsible for navigation state management within the shell. */
-@HiltViewModel
+/** ViewModel handling navigation state and operations. */
+private const val WINDOW_STATE_INDEX = 0
+private const val ACTIVE_MODE_INDEX = 1
+private const val LEFT_DRAWER_INDEX = 2
+private const val RIGHT_DRAWER_INDEX = 3
+private const val ACTIVE_PANEL_INDEX = 4
+private const val UNDO_STATE_INDEX = 5
+private const val COMMAND_PALETTE_INDEX = 6
+
 class NavigationViewModel
 @Inject
 constructor(
   private val navigationRepository: NavigationRepository,
-  private val userProfileRepository: UserProfileRepository,
   private val navigationOperationsUseCase: NavigationOperationsUseCase,
-  @Suppress("UnusedPrivateProperty")
-  @MainImmediateDispatcher
-  private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
 ) : ViewModel() {
 
-  private val userId: String = UIUX_DEFAULT_USER_ID
-  private val hasAppliedHomeStartup = AtomicBoolean(false)
+  private val _activeMode = MutableStateFlow<ModeId>(ModeId.HOME)
+  private val _leftDrawerState = MutableStateFlow<DrawerState>(DrawerState(false))
+  private val _rightDrawerState = MutableStateFlow<DrawerState>(DrawerState(false))
+  private val _activeRightPanel = MutableStateFlow<RightPanel?>(null)
+  private val _undoState = MutableStateFlow<UndoState>(UndoState(null))
 
-  private val uiSnapshot: StateFlow<UIStateSnapshot> =
-    userProfileRepository
-      .observeUIStateSnapshot(userId)
-      .map { snapshot -> snapshot ?: defaultSnapshot(userId) }
-      .map { snapshot -> coerceInitialActiveMode(snapshot) }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, defaultSnapshot(userId))
-
-  /** Navigation-specific state derived from shell layout state. */
   val navigationState: StateFlow<NavigationState> =
-    combine(navigationRepository.windowSizeClass, uiSnapshot) { windowSize, snapshot ->
+    combine(
+        navigationRepository.windowSizeClass,
+        _activeMode,
+        _leftDrawerState,
+        _rightDrawerState,
+        _activeRightPanel,
+        _undoState,
+        navigationRepository.commandPaletteState,
+      ) { values ->
+        val windowState = values[WINDOW_STATE_INDEX] as WindowSizeClass
+        val activeMode = values[ACTIVE_MODE_INDEX] as ModeId
+        val leftDrawerState = values[LEFT_DRAWER_INDEX] as DrawerState
+        val rightDrawerState = values[RIGHT_DRAWER_INDEX] as DrawerState
+        val activeRightPanel = values[ACTIVE_PANEL_INDEX] as RightPanel?
+        val undoState = values[UNDO_STATE_INDEX] as UndoState
+        val commandPalette = values[COMMAND_PALETTE_INDEX] as CommandPaletteState
+
         NavigationState(
-          activeMode = snapshot.activeModeRoute.toModeIdOrDefault(),
-          isLeftDrawerOpen = snapshot.isLeftDrawerOpen,
-          isRightDrawerOpen = snapshot.isRightDrawerOpen,
-          activeRightPanel = snapshot.activeRightPanel.toRightPanel(),
-          showCommandPalette = snapshot.isCommandPaletteVisible,
-          windowSizeClass = windowSize,
+          windowState = windowState,
+          activeMode = activeMode,
+          leftDrawerState = leftDrawerState,
+          rightDrawerState = rightDrawerState,
+          activeRightPanel = activeRightPanel,
+          undoState = undoState,
+          commandPalette = commandPalette,
         )
       }
-      .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = NavigationState.default(),
-      )
+      .stateIn(viewModelScope, SharingStarted.Eagerly, NavigationState.default())
 
-  /** Opens a specific mode, closing drawers and hiding the command palette. */
   fun openMode(modeId: ModeId) {
-    navigationOperationsUseCase.openMode(modeId)
+    _activeMode.value = modeId
   }
 
-  /** Toggles the left navigation drawer. */
   fun toggleLeftDrawer() {
-    navigationOperationsUseCase.toggleLeftDrawer()
+    _leftDrawerState.value = _leftDrawerState.value.copy(isOpen = !_leftDrawerState.value.isOpen)
   }
 
-  /** Sets the left drawer to a specific open/closed state. */
   fun setLeftDrawer(open: Boolean) {
-    navigationOperationsUseCase.setLeftDrawer(open)
+    _leftDrawerState.value = _leftDrawerState.value.copy(isOpen = open)
   }
 
-  /** Toggles the right contextual drawer for a specific panel. */
   fun toggleRightDrawer(panel: RightPanel) {
-    navigationOperationsUseCase.toggleRightDrawer(panel)
+    val isOpen = !_rightDrawerState.value.isOpen
+    _rightDrawerState.value = DrawerState(isOpen)
+    _activeRightPanel.value = if (isOpen) panel else null
   }
 
-  /** Shows the command palette overlay from a specific source. */
   fun showCommandPalette(source: PaletteSource) {
     navigationOperationsUseCase.showCommandPalette(source)
   }
 
-  /** Hides the command palette overlay. */
-  fun hideCommandPalette(@Suppress("UNUSED_PARAMETER") reason: PaletteDismissReason) {
+  fun hideCommandPalette() {
     navigationOperationsUseCase.hideCommandPalette()
   }
 
-  /** Updates the current window size class so adaptive layouts respond to device changes. */
   fun updateWindowSizeClass(sizeClass: WindowSizeClass) {
     navigationOperationsUseCase.updateWindowSizeClass(sizeClass)
-  }
-
-  private fun coerceInitialActiveMode(snapshot: UIStateSnapshot): UIStateSnapshot {
-    if (hasAppliedHomeStartup.compareAndSet(false, true)) {
-      val resetSnapshot =
-        snapshot
-          .updateActiveMode(UIStateSnapshot.DEFAULT_MODE_ROUTE)
-          .toggleLeftDrawer(open = false)
-          .toggleRightDrawer(open = false, panelId = null)
-          .updatePaletteVisibility(visible = false)
-
-      viewModelScope.launch {
-        if (
-          !snapshot.activeModeRoute.equals(UIStateSnapshot.DEFAULT_MODE_ROUTE, ignoreCase = true)
-        ) {
-          userProfileRepository.updateActiveModeRoute(userId, ModeId.HOME.toRoute())
-        }
-        if (snapshot.isLeftDrawerOpen) {
-          userProfileRepository.updateLeftDrawerOpen(userId, false)
-        }
-        if (snapshot.isRightDrawerOpen || snapshot.activeRightPanel != null) {
-          userProfileRepository.updateRightDrawerState(userId, false, null)
-        }
-        if (snapshot.isCommandPaletteVisible) {
-          userProfileRepository.updateCommandPaletteVisibility(userId, false)
-        }
-      }
-
-      return resetSnapshot
-    }
-
-    return snapshot
-  }
-
-  private fun defaultSnapshot(userId: String): UIStateSnapshot =
-    UIStateSnapshot(
-      userId = userId,
-      expandedPanels = emptyList(),
-      recentActions = emptyList(),
-      isSidebarCollapsed = false,
-    )
-
-  private fun String?.toRightPanel(): RightPanel? {
-    val value = this ?: return null
-    return RightPanel.entries.firstOrNull { panel -> panel.name.equals(value, ignoreCase = true) }
   }
 }
 
 /** Navigation-specific state extracted from ShellLayoutState. */
 data class NavigationState(
+  val windowState: WindowSizeClass,
   val activeMode: ModeId,
-  val isLeftDrawerOpen: Boolean,
-  val isRightDrawerOpen: Boolean,
+  val leftDrawerState: DrawerState,
+  val rightDrawerState: DrawerState,
   val activeRightPanel: RightPanel?,
-  val showCommandPalette: Boolean,
-  val windowSizeClass: WindowSizeClass,
+  val undoState: UndoState,
+  val commandPalette: CommandPaletteState,
 ) {
   companion object {
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     fun default(): NavigationState =
       NavigationState(
-        activeMode = ModeId.HOME,
-        isLeftDrawerOpen = false,
-        isRightDrawerOpen = false,
-        activeRightPanel = null,
-        showCommandPalette = false,
-        windowSizeClass =
+        windowState =
           WindowSizeClass.calculateFromSize(
             androidx.compose.ui.unit.DpSize(width = 640.dp, height = 360.dp)
           ),
+        activeMode = ModeId.HOME,
+        leftDrawerState = DrawerState(false),
+        rightDrawerState = DrawerState(false),
+        activeRightPanel = null,
+        undoState = UndoState(null),
+        commandPalette = CommandPaletteState.Empty,
       )
   }
 }
+
+/** Simple data class for drawer state. */
+data class DrawerState(val isOpen: Boolean)
+
+/** Simple data class for undo state. */
+data class UndoState(val payload: UndoPayload?)

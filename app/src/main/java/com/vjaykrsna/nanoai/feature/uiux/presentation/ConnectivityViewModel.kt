@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.vjaykrsna.nanoai.core.common.MainImmediateDispatcher
 import com.vjaykrsna.nanoai.core.data.repository.ConnectivityRepository
 import com.vjaykrsna.nanoai.feature.uiux.domain.ConnectivityOperationsUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 /** ViewModel responsible for connectivity status and banner management. */
-@HiltViewModel
 class ConnectivityViewModel
 @Inject
 constructor(

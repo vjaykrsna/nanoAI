@@ -57,6 +57,8 @@ internal fun ModelLibraryToolbar(
   selectedLocalLibrary: ProviderType?,
   huggingFaceLibraryOptions: List<String>,
   selectedHuggingFaceLibrary: String?,
+  capabilityOptions: List<String>,
+  selectedCapabilities: Set<String>,
   activeFilterCount: Int,
   onSearchChange: (String) -> Unit,
   onPipelineSelect: (String?) -> Unit,
@@ -64,12 +66,14 @@ internal fun ModelLibraryToolbar(
   onSelectHuggingFaceSort: (HuggingFaceSortOption) -> Unit,
   onSelectLocalLibrary: (ProviderType?) -> Unit,
   onSelectHuggingFaceLibrary: (String?) -> Unit,
+  onToggleCapability: (String) -> Unit,
 ) {
   var filtersExpanded by rememberSaveable { mutableStateOf(false) }
   val hasFilterPanel =
     pipelineOptions.isNotEmpty() ||
       localLibraryOptions.isNotEmpty() ||
-      huggingFaceLibraryOptions.isNotEmpty()
+      huggingFaceLibraryOptions.isNotEmpty() ||
+      capabilityOptions.isNotEmpty()
 
   if (!hasFilterPanel) filtersExpanded = false
 
@@ -199,6 +203,26 @@ internal fun ModelLibraryToolbar(
                     FilterChip(
                       selected = selected,
                       onClick = { onPipelineSelect(if (selected) null else display) },
+                      label = { Text(display) },
+                    )
+                  }
+                }
+              }
+            }
+
+            if (capabilityOptions.isNotEmpty() && tab != ModelLibraryTab.HUGGING_FACE) {
+              FilterSection(title = "Capabilities") {
+                val capabilityScroll = rememberScrollState()
+                Row(
+                  modifier = Modifier.horizontalScroll(capabilityScroll),
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                  capabilityOptions.forEach { capability ->
+                    val display = capability.trim().replaceFirstChar { it.uppercase() }
+                    val selected = selectedCapabilities.contains(capability)
+                    FilterChip(
+                      selected = selected,
+                      onClick = { onToggleCapability(capability) },
                       label = { Text(display) },
                     )
                   }

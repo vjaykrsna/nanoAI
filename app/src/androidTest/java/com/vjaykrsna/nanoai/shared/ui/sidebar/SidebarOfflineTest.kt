@@ -3,12 +3,11 @@ package com.vjaykrsna.nanoai.shared.ui.sidebar
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vjaykrsna.nanoai.core.model.InferenceMode
-import org.junit.Test
-import org.junit.runner.RunWith
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class SidebarOfflineTest : BaseSidebarContentTest() {
 
   @Test

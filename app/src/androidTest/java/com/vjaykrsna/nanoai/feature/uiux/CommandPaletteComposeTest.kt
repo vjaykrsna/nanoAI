@@ -37,7 +37,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.feature.uiux.presentation.CommandAction
 import com.vjaykrsna.nanoai.feature.uiux.presentation.CommandCategory
@@ -66,19 +65,18 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
 @OptIn(
   ExperimentalCoroutinesApi::class,
   ExperimentalTestApi::class,
   ExperimentalMaterial3WindowSizeClassApi::class,
 )
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class CommandPaletteComposeTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @Test
   fun palette_opensWithShortcut_focusesSearchField() {

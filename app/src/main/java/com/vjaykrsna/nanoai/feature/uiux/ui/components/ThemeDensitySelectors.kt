@@ -20,10 +20,11 @@ fun ThemePreferenceChips(
   selected: ThemePreference,
   onSelect: (ThemePreference) -> Unit,
   modifier: Modifier = Modifier,
+  supportedThemes: List<ThemePreference> = ThemePreference.entries,
   chipModifier: (ThemePreference) -> Modifier = { Modifier },
 ) {
   Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
-    ThemePreference.entries.forEach { theme ->
+    supportedThemes.forEach { theme ->
       val label = themeLabel(theme)
       FilterChip(
         selected = selected == theme,
@@ -81,8 +82,6 @@ private fun themeLabel(theme: ThemePreference): String =
     ThemePreference.LIGHT -> "Light"
     ThemePreference.DARK -> "Dark"
     ThemePreference.AMOLED -> "AMOLED"
-    ThemePreference.HIGH_CONTRAST_LIGHT -> "High Contrast Light"
-    ThemePreference.HIGH_CONTRAST_DARK -> "High Contrast Dark"
     ThemePreference.SYSTEM -> "System"
   }
 

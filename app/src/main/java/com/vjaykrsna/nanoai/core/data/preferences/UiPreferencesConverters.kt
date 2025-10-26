@@ -1,6 +1,6 @@
 package com.vjaykrsna.nanoai.core.data.preferences
 
-import javax.inject.Singleton
+import javax.inject.Inject
 import kotlinx.datetime.Instant
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -11,8 +11,7 @@ import kotlinx.serialization.json.Json
  * Helper responsible for encoding and decoding complex preference payloads using Kotlin
  * Serialization.
  */
-@Singleton
-class UiPreferencesConverters(private val json: Json) {
+class UiPreferencesConverters @Inject constructor(private val json: Json) {
   private val stringListSerializer = ListSerializer(String.serializer())
   private val stringBooleanMapSerializer = MapSerializer(String.serializer(), Boolean.serializer())
 

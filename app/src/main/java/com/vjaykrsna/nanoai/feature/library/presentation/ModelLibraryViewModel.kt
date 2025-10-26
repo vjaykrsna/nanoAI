@@ -6,13 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.vjaykrsna.nanoai.core.common.*
 import com.vjaykrsna.nanoai.core.domain.model.DownloadTask
 import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
-import com.vjaykrsna.nanoai.feature.library.data.ModelCatalogRepository
 import com.vjaykrsna.nanoai.feature.library.domain.DownloadModelUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.DownloadStatus
+import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceModelCompatibilityChecker
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceToModelPackageConverter
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
-import com.vjaykrsna.nanoai.feature.library.domain.ListHuggingFaceModelsUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.ModelCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
 import com.vjaykrsna.nanoai.feature.library.domain.RefreshModelCatalogUseCase
@@ -57,19 +56,18 @@ private const val DOWNLOAD_PRIORITY_CANCELLED = 5
 class ModelLibraryViewModel
 @Inject
 constructor(
-  private val modelCatalogRepository: ModelCatalogRepository,
   private val modelCatalogUseCase: ModelCatalogUseCase,
   private val refreshModelCatalogUseCase: RefreshModelCatalogUseCase,
   private val downloadManager: DownloadManager,
   private val downloadModelUseCase: DownloadModelUseCase,
   private val hfToModelConverter: HuggingFaceToModelPackageConverter,
-  private val listHuggingFaceModelsUseCase: ListHuggingFaceModelsUseCase,
+  private val huggingFaceCatalogUseCase: HuggingFaceCatalogUseCase,
   private val compatibilityChecker: HuggingFaceModelCompatibilityChecker,
 ) : ViewModel() {
 
   // Create HuggingFace ViewModel manually since Hilt doesn't allow injecting ViewModels
   private val huggingFaceLibraryViewModel =
-    HuggingFaceLibraryViewModel(listHuggingFaceModelsUseCase, compatibilityChecker)
+    HuggingFaceLibraryViewModel(huggingFaceCatalogUseCase, compatibilityChecker)
 
   private val _isRefreshing = MutableStateFlow(false)
   val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -91,12 +89,12 @@ constructor(
   val filters: StateFlow<LibraryFilterState> = _filters.asStateFlow()
 
   val allModels: StateFlow<List<ModelPackage>> =
-    modelCatalogRepository
+    modelCatalogUseCase
       .observeAllModels()
       .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
   val installedModels: StateFlow<List<ModelPackage>> =
-    modelCatalogRepository
+    modelCatalogUseCase
       .observeInstalledModels()
       .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -285,6 +283,23 @@ constructor(
     _filters.update { it.copy(localLibrary = providerType) }
   }
 
+  fun toggleCapability(capability: String) {
+    _filters.update { state ->
+      val current = state.selectedCapabilities
+      val updated =
+        if (current.contains(capability)) {
+          current - capability
+        } else {
+          current + capability
+        }
+      state.copy(selectedCapabilities = updated)
+    }
+  }
+
+  fun clearSelectedCapabilities() {
+    _filters.update { it.copy(selectedCapabilities = emptySet()) }
+  }
+
   fun setHuggingFaceLibrary(library: String?) {
     _filters.update { it.copy(huggingFaceLibrary = library) }
     huggingFaceLibraryViewModel.setLibrary(library)
@@ -308,6 +323,7 @@ constructor(
             pipelineTag = null,
             localSort = ModelSort.RECOMMENDED,
             localLibrary = null,
+            selectedCapabilities = emptySet(),
           )
       }
     }

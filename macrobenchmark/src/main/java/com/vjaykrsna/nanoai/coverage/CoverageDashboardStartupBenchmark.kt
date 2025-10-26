@@ -17,7 +17,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import java.io.File
 import kotlin.math.max
 import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 
 private const val PACKAGE_NAME = "com.vjaykrsna.nanoai"

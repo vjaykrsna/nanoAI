@@ -12,19 +12,18 @@ import com.vjaykrsna.nanoai.feature.settings.domain.huggingface.HuggingFaceDevic
 import com.vjaykrsna.nanoai.feature.settings.presentation.SettingsError
 import com.vjaykrsna.nanoai.feature.settings.presentation.SettingsUiUxState
 import com.vjaykrsna.nanoai.feature.settings.presentation.SettingsViewModel
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.Before
-import org.junit.Rule
+import org.junit.jupiter.api.BeforeEach
 
 @OptIn(ExperimentalTestApi::class)
 abstract class BaseSettingsScreenTest {
 
-  @get:Rule val composeTestRule: ComposeContentTestRule = createComposeRule()
-  @get:Rule val testEnvironmentRule = TestEnvironmentRule()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeTestRule: ComposeContentTestRule = createComposeRule()
 
   protected lateinit var viewModel: SettingsViewModel
 
@@ -46,7 +45,7 @@ abstract class BaseSettingsScreenTest {
   protected val mockExportSuccess = MutableSharedFlow<String>(extraBufferCapacity = 1)
   protected val mockImportSuccess = MutableSharedFlow<ImportSummary>(extraBufferCapacity = 1)
 
-  @Before
+  @BeforeEach
   fun setUpBase() {
     viewModel = mockk(relaxed = true)
     every { viewModel.apiProviders } returns mockApiProviders

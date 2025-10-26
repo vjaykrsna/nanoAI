@@ -1,6 +1,7 @@
 package com.vjaykrsna.nanoai.feature.uiux.data
 
 import com.vjaykrsna.nanoai.core.common.IoDispatcher
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.data.repository.ThemeRepository
 import com.vjaykrsna.nanoai.core.data.repository.UserProfileRepository
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
@@ -24,6 +25,7 @@ class ThemeRepositoryImpl
 @Inject
 constructor(
   private val userProfileRepository: UserProfileRepository,
+  private val uiPreferencesStore: UiPreferencesStore,
   @IoDispatcher override val ioDispatcher: CoroutineDispatcher,
 ) : ThemeRepository {
 
@@ -48,11 +50,16 @@ constructor(
     withContext(ioDispatcher) { userProfileRepository.updateVisualDensity(userId, density.name) }
   }
 
+  override suspend fun updateHighContrastEnabled(enabled: Boolean) {
+    withContext(ioDispatcher) { uiPreferencesStore.setHighContrastEnabled(enabled) }
+  }
+
   private fun DomainUiPreferencesSnapshot.toUiPreferenceSnapshot(): UiPreferenceSnapshot =
     UiPreferenceSnapshot(
       theme = themePreference,
       density = visualDensity,
       fontScale = 1f,
       dismissedTooltips = emptySet(),
+      highContrastEnabled = highContrastEnabled,
     )
 }

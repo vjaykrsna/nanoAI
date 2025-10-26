@@ -10,11 +10,12 @@ import java.util.UUID
 import kotlinx.datetime.Clock
 import org.junit.Before
 import org.junit.Rule
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(TestEnvironmentRule::class)
 abstract class BaseSidebarContentTest {
 
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule: ComposeContentTestRule = createComposeRule()
+  @get:Rule @JvmField val composeRule: ComposeContentTestRule = createComposeRule()
 
   protected lateinit var testThreads: List<ChatThread>
   protected var newThreadClicked: Boolean = false
@@ -59,7 +60,9 @@ abstract class BaseSidebarContentTest {
     interactions: SidebarInteractions = SidebarInteractions(),
   ) {
     composeRule.setContent {
-      NanoAITheme { SidebarContent(state = state, interactions = interactions) }
+      NanoAITheme(dynamicColor = false) {
+        SidebarContent(state = state, interactions = interactions)
+      }
     }
     composeRule.waitForIdle()
   }

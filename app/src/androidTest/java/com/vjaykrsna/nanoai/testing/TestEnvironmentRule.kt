@@ -6,24 +6,23 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import java.io.File
-import org.junit.rules.TestWatcher
-import org.junit.runner.Description
+import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtensionContext
 
 /**
  * Ensures instrumentation tests start from a clean slate by clearing persistent state and
  * re-enabling radios before each run. Keeps Compose flows deterministic across CI and local hosts.
  */
-class TestEnvironmentRule : TestWatcher() {
-  private val instrumentation = InstrumentationRegistry.getInstrumentation()
-  private val context: Context = ApplicationProvider.getApplicationContext()
+class TestEnvironmentRule : BeforeEachCallback, AfterEachCallback {
+  private val instrumentation by lazy { InstrumentationRegistry.getInstrumentation() }
+  private val context: Context by lazy { ApplicationProvider.getApplicationContext() }
 
-  override fun starting(description: Description) {
-    super.starting(description)
+  override fun beforeEach(context: ExtensionContext) {
     resetState()
   }
 
-  override fun finished(description: Description) {
-    super.finished(description)
+  override fun afterEach(context: ExtensionContext) {
     enableNetworks()
   }
 

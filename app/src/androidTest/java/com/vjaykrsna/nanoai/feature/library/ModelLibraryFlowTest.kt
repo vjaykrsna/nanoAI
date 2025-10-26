@@ -1,11 +1,10 @@
 package com.vjaykrsna.nanoai.feature.library
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ModelLibraryFlowTest {
   @Ignore("Pending model library instrumentation once backend download flows are implemented.")
   @Test

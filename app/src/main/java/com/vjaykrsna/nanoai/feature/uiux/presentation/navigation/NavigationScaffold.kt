@@ -67,7 +67,7 @@ fun NavigationScaffold(
   LaunchedEffect(windowSizeClass) { shellViewModel.updateWindowSizeClass(windowSizeClass) }
   LaunchedEffect(appState.offline) {
     val status = if (appState.offline) ConnectivityStatus.OFFLINE else ConnectivityStatus.ONLINE
-    shellViewModel.updateConnectivity(status)
+    shellViewModel.onEvent(ShellUiEvent.ConnectivityChanged(status))
   }
 
   LaunchedEffect(shellUiState.layout.activeMode) {
@@ -85,8 +85,6 @@ fun NavigationScaffold(
     }
   }
 
-  val shellEventHandler = rememberShellEventHandler(shellViewModel, chatViewModel)
-
   var disclaimerDismissedForSession by rememberSaveable { mutableStateOf(false) }
   val shouldShowDisclaimer = appState.disclaimer.shouldShow && !disclaimerDismissedForSession
 
@@ -99,14 +97,21 @@ fun NavigationScaffold(
   Box(modifier = modifier.fillMaxSize()) {
     NanoShellScaffold(
       state = shellUiState,
-      onEvent = shellEventHandler,
+      onEvent = { event ->
+        when (event) {
+          is ShellUiEvent.ChatPersonaSelected ->
+            chatViewModel.switchPersona(event.personaId, event.action)
+          is ShellUiEvent.ChatTitleClicked -> chatViewModel.showModelPicker()
+          else -> shellViewModel.onEvent(event)
+        }
+      },
       modifier = Modifier.fillMaxSize(),
       modeContent = { modeId ->
         ShellModeContent(
           modeId = modeId,
           modifier = Modifier.fillMaxSize(),
           onUpdateChatState = shellViewModel::updateChatState,
-          onNavigate = shellViewModel::openMode,
+          onNavigate = { mode -> shellViewModel.onEvent(ShellUiEvent.ModeSelected(mode)) },
         )
       },
     )
@@ -133,42 +138,12 @@ fun NavigationScaffold(
 
     // Skip links for keyboard navigation accessibility
     SkipLinksNavigation(
-      onSkipToContent = { shellViewModel.openMode(ModeId.HOME) },
-      onSkipToNavigation = { shellViewModel.toggleLeftDrawer() },
+      onSkipToContent = { shellViewModel.onEvent(ShellUiEvent.ModeSelected(ModeId.HOME)) },
+      onSkipToNavigation = { shellViewModel.onEvent(ShellUiEvent.ToggleLeftDrawer) },
       modifier = Modifier.align(Alignment.TopStart),
     )
   }
 }
-
-@Composable
-private fun rememberShellEventHandler(
-  shellViewModel: ShellViewModel,
-  chatViewModel: ChatViewModel,
-): (ShellUiEvent) -> Unit =
-  remember(shellViewModel, chatViewModel) {
-    { event ->
-      when (event) {
-        is ShellUiEvent.ModeSelected -> shellViewModel.openMode(event.modeId)
-        ShellUiEvent.ToggleLeftDrawer -> shellViewModel.toggleLeftDrawer()
-        is ShellUiEvent.SetLeftDrawer -> shellViewModel.setLeftDrawer(event.open)
-        is ShellUiEvent.ToggleRightDrawer -> shellViewModel.toggleRightDrawer(event.panel)
-        is ShellUiEvent.ShowCommandPalette -> shellViewModel.showCommandPalette(event.source)
-        is ShellUiEvent.HideCommandPalette -> shellViewModel.hideCommandPalette(event.reason)
-        is ShellUiEvent.CommandInvoked ->
-          shellViewModel.onCommandInvoked(event.action, event.source)
-        is ShellUiEvent.QueueJob -> shellViewModel.queueGeneration(event.job)
-        is ShellUiEvent.RetryJob -> shellViewModel.retryJob(event.job)
-        is ShellUiEvent.CompleteJob -> shellViewModel.completeJob(event.jobId)
-        is ShellUiEvent.Undo -> shellViewModel.undoAction(event.payload)
-        is ShellUiEvent.ConnectivityChanged -> shellViewModel.updateConnectivity(event.status)
-        is ShellUiEvent.UpdateTheme -> shellViewModel.updateThemePreference(event.theme)
-        is ShellUiEvent.UpdateDensity -> shellViewModel.updateVisualDensity(event.density)
-        is ShellUiEvent.ChatPersonaSelected ->
-          chatViewModel.switchPersona(event.personaId, event.action)
-        is ShellUiEvent.ChatTitleClicked -> chatViewModel.showModelPicker()
-      }
-    }
-  }
 
 @Composable
 private fun ShellModeContent(

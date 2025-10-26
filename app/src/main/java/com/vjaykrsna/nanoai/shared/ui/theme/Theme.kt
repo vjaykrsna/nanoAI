@@ -179,15 +179,14 @@ private val HighContrastDarkColorScheme =
 @Composable
 fun NanoAITheme(
   themePreference: ThemePreference = ThemePreference.SYSTEM,
+  highContrastEnabled: Boolean = false,
   dynamicColor: Boolean = true,
   content: @Composable () -> Unit,
 ) {
   val systemDarkTheme = isSystemInDarkTheme()
   val darkTheme = resolveDarkTheme(themePreference, systemDarkTheme)
   val isAmoled = themePreference == ThemePreference.AMOLED
-  val isHighContrast =
-    themePreference == ThemePreference.HIGH_CONTRAST_LIGHT ||
-      themePreference == ThemePreference.HIGH_CONTRAST_DARK
+  val isHighContrast = highContrastEnabled
   val colorScheme =
     rememberNanoAIColorScheme(
       darkTheme = darkTheme,
@@ -205,10 +204,8 @@ private fun resolveDarkTheme(themePreference: ThemePreference, systemDarkTheme: 
   return when (themePreference) {
     ThemePreference.SYSTEM -> systemDarkTheme
     ThemePreference.DARK,
-    ThemePreference.AMOLED,
-    ThemePreference.HIGH_CONTRAST_DARK -> true
-    ThemePreference.LIGHT,
-    ThemePreference.HIGH_CONTRAST_LIGHT -> false
+    ThemePreference.AMOLED -> true
+    ThemePreference.LIGHT -> false
   }
 }
 

@@ -3,6 +3,7 @@ package com.vjaykrsna.nanoai.feature.uiux.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreferenceStore
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.feature.uiux.domain.ObserveUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,18 +27,21 @@ class AppViewModel
 constructor(
   observeUserProfileUseCase: ObserveUserProfileUseCase,
   private val privacyPreferenceStore: PrivacyPreferenceStore,
+  private val uiPreferencesStore: UiPreferencesStore,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AppUiState())
   val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
   init {
     viewModelScope.launch {
-      combine(observeUserProfileUseCase.flow, privacyPreferenceStore.disclaimerExposure) {
-          result,
-          disclaimer ->
-          result to disclaimer
+      combine(
+          observeUserProfileUseCase.flow,
+          privacyPreferenceStore.disclaimerExposure,
+          uiPreferencesStore.uiPreferences,
+        ) { result, disclaimer, uiPrefs ->
+          Triple(result, disclaimer, uiPrefs)
         }
-        .collect { (result, disclaimer) ->
+        .collect { (result, disclaimer, uiPrefs) ->
           val profile = result.userProfile
           val themePreference = profile?.themePreference ?: ThemePreference.SYSTEM
           val hydrating = profile == null && result.hydratedFromCache
@@ -45,6 +49,7 @@ constructor(
           _uiState.update {
             it.copy(
               themePreference = themePreference,
+              highContrastEnabled = uiPrefs.highContrastEnabled,
               isHydrating = hydrating,
               offline = result.offline,
               disclaimer =
@@ -74,6 +79,7 @@ constructor(
 /** Global application UI state exposed from [AppViewModel]. */
 data class AppUiState(
   val themePreference: ThemePreference = ThemePreference.SYSTEM,
+  val highContrastEnabled: Boolean = false,
   val isHydrating: Boolean = true,
   val offline: Boolean = false,
   val disclaimer: DisclaimerUiState = DisclaimerUiState(),

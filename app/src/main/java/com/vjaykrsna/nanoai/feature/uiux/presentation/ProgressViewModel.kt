@@ -7,7 +7,6 @@ import com.vjaykrsna.nanoai.feature.uiux.domain.JobOperationsUseCase
 import com.vjaykrsna.nanoai.feature.uiux.domain.ProgressCenterCoordinator
 import com.vjaykrsna.nanoai.feature.uiux.domain.QueueJobUseCase
 import com.vjaykrsna.nanoai.feature.uiux.domain.UndoActionUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** ViewModel responsible for background job progress management and coordination. */
-@HiltViewModel
 class ProgressViewModel
 @Inject
 constructor(

@@ -3,9 +3,9 @@ package com.vjaykrsna.nanoai.feature.library.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vjaykrsna.nanoai.core.common.NanoAIResult
+import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceModelCompatibilityChecker
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceModelSummary
-import com.vjaykrsna.nanoai.feature.library.domain.ListHuggingFaceModelsUseCase
 import com.vjaykrsna.nanoai.feature.library.presentation.model.HuggingFaceFilterState
 import com.vjaykrsna.nanoai.feature.library.presentation.model.HuggingFaceSortOption
 import com.vjaykrsna.nanoai.feature.library.presentation.model.LibraryError
@@ -28,7 +28,7 @@ private const val HUGGING_FACE_SEARCH_DEBOUNCE_MS = 350L
 class HuggingFaceLibraryViewModel
 @Inject
 constructor(
-  private val listHuggingFaceModelsUseCase: ListHuggingFaceModelsUseCase,
+  private val huggingFaceCatalogUseCase: HuggingFaceCatalogUseCase,
   private val compatibilityChecker: HuggingFaceModelCompatibilityChecker,
 ) : ViewModel() {
 
@@ -46,7 +46,7 @@ constructor(
           .distinctBy { it.lowercase(Locale.US) }
           .sortedBy { it.lowercase(Locale.US) }
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
   val libraryOptions: StateFlow<List<String>> =
     models
@@ -56,7 +56,7 @@ constructor(
           .distinctBy { it.lowercase(Locale.US) }
           .sortedBy { it.lowercase(Locale.US) }
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
   val downloadableModelIds: StateFlow<Set<String>> =
     models
@@ -66,7 +66,7 @@ constructor(
           .map { it.modelId }
           .toSet()
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
   private val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -103,7 +103,7 @@ constructor(
     viewModelScope.launch {
       _isLoading.value = true
       val query = filters.toQuery()
-      val result = listHuggingFaceModelsUseCase(query)
+      val result = huggingFaceCatalogUseCase.listModels(query)
       when (result) {
         is NanoAIResult.Success -> {
           _models.value =

@@ -5,12 +5,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vjaykrsna.nanoai.core.common.NanoAIResult
+import com.vjaykrsna.nanoai.feature.chat.domain.ConversationUseCase
 import com.vjaykrsna.nanoai.feature.chat.domain.SendPromptUseCase
 import com.vjaykrsna.nanoai.feature.chat.domain.SwitchPersonaUseCase
 import com.vjaykrsna.nanoai.feature.chat.presentation.ChatViewModel
 import com.vjaykrsna.nanoai.feature.library.data.ModelCatalogRepository
+import com.vjaykrsna.nanoai.feature.library.domain.ModelCatalogUseCase
 import com.vjaykrsna.nanoai.testing.ComposeTestHarness
 import com.vjaykrsna.nanoai.testing.DomainTestBuilders
 import com.vjaykrsna.nanoai.testing.FakeConversationRepository
@@ -20,39 +21,36 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import java.util.UUID
 import kotlinx.coroutines.test.StandardTestDispatcher
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-/**
- * Compose instrumentation tests for [ChatScreen].
- *
- * Validates TalkBack semantics, send button enablement, offline banners, and loading indicators.
- */
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ChatScreenTest {
 
-  @get:Rule val composeTestRule = createComposeRule()
-
-  @get:Rule val testEnvironmentRule = TestEnvironmentRule()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeTestRule = createComposeRule()
 
   private lateinit var conversationRepository: FakeConversationRepository
   private lateinit var personaRepository: FakePersonaRepository
   private lateinit var sendPromptUseCase: SendPromptUseCase
   private lateinit var switchPersonaUseCase: SwitchPersonaUseCase
   private lateinit var modelCatalogRepository: ModelCatalogRepository
+  private lateinit var conversationUseCase: ConversationUseCase
+  private lateinit var modelCatalogUseCase: ModelCatalogUseCase
   private lateinit var viewModel: ChatViewModel
   private lateinit var harness: ComposeTestHarness
   private val testDispatcher = StandardTestDispatcher()
 
-  @Before
+  @BeforeEach
   fun setup() {
     conversationRepository = FakeConversationRepository()
     personaRepository = FakePersonaRepository()
     sendPromptUseCase = mockk(relaxed = true)
     switchPersonaUseCase = mockk(relaxed = true)
     modelCatalogRepository = mockk(relaxed = true)
+    conversationUseCase = ConversationUseCase(conversationRepository)
+    modelCatalogUseCase = ModelCatalogUseCase(modelCatalogRepository)
 
     coEvery { sendPromptUseCase(any(), any(), any()) } returns NanoAIResult.success(Unit)
     coEvery { switchPersonaUseCase(any(), any(), any()) } returns
@@ -62,9 +60,9 @@ class ChatScreenTest {
       ChatViewModel(
         sendPromptUseCase,
         switchPersonaUseCase,
-        conversationRepository,
+        conversationUseCase,
         personaRepository,
-        modelCatalogRepository,
+        modelCatalogUseCase,
         testDispatcher,
       )
     harness = ComposeTestHarness(composeTestRule)

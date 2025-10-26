@@ -3,13 +3,12 @@ package com.vjaykrsna.nanoai.feature.settings.ui
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vjaykrsna.nanoai.feature.settings.domain.ImportSummary
 import com.vjaykrsna.nanoai.feature.settings.presentation.SettingsError
-import org.junit.Test
-import org.junit.runner.RunWith
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
+import org.junit.jupiter.api.Test
 
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class SettingsScreenBackupRestoreTest : BaseSettingsScreenTest() {
 
   @Test

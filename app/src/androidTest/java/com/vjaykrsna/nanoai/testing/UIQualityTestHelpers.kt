@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.ComposeTestRule
  *
  * Provides utilities to verify spacing, typography, color usage, and component consistency.
  */
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class UIQualityTestHelpers(private val composeTestRule: ComposeTestRule) {
 
   /**

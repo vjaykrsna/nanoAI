@@ -96,7 +96,7 @@ Building on the solid test foundation, these features can now be developed with 
 - Risk mitigation: Some items target builds 2-3 sprints out; monitor for slippage.
 
 ### Dependencies
-- JUnit5 migration complete (unlocks better test parameterization and extensions)
+- JUnit6 migration complete (unlocks better test parameterization and extensions)
 - Coverage tooling operational (enables continuous threshold monitoring)
 - Managed device configuration stable (supports deterministic CI runs)
 

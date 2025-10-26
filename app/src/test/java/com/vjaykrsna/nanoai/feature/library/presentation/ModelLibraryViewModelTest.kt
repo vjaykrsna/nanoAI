@@ -5,11 +5,12 @@ package com.vjaykrsna.nanoai.feature.library.presentation
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.common.NanoAIResult
+import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
 import com.vjaykrsna.nanoai.feature.library.domain.DownloadModelUseCase
+import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceModelCompatibilityChecker
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceToModelPackageConverter
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
-import com.vjaykrsna.nanoai.feature.library.domain.ListHuggingFaceModelsUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.ManageModelUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.ModelCatalogUseCase
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
@@ -23,8 +24,10 @@ import com.vjaykrsna.nanoai.testing.FakeModelCatalogRepository
 import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import java.util.UUID
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -40,12 +43,14 @@ class ModelLibraryViewModelTest {
 
   @JvmField @RegisterExtension val mainDispatcherExtension = MainDispatcherExtension()
 
-  private lateinit var modelCatalogRepository: FakeModelCatalogRepository
+  private lateinit var fakeRepository: FakeModelCatalogRepository
+  private lateinit var allModelsState: MutableStateFlow<List<ModelPackage>>
+  private lateinit var installedModelsState: MutableStateFlow<List<ModelPackage>>
   private lateinit var modelCatalogUseCase: ModelCatalogUseCase
-  private lateinit var refreshUseCase: RefreshModelCatalogUseCase
-  private lateinit var listHuggingFaceModelsUseCase: ListHuggingFaceModelsUseCase
+  private lateinit var refreshModelCatalogUseCase: RefreshModelCatalogUseCase
+  private lateinit var huggingFaceCatalogUseCase: HuggingFaceCatalogUseCase
   private lateinit var compatibilityChecker: HuggingFaceModelCompatibilityChecker
-  private lateinit var modelConverter: HuggingFaceToModelPackageConverter
+  private lateinit var hfToModelConverter: HuggingFaceToModelPackageConverter
   private lateinit var downloadModelUseCase: DownloadModelUseCase
   private lateinit var manageModelUseCase: ManageModelUseCase
   private lateinit var downloadManager: DownloadManager
@@ -53,48 +58,53 @@ class ModelLibraryViewModelTest {
 
   @BeforeEach
   fun setup() {
-    modelCatalogRepository = FakeModelCatalogRepository()
+    fakeRepository = FakeModelCatalogRepository()
+    allModelsState = MutableStateFlow(emptyList())
+    installedModelsState = MutableStateFlow(emptyList())
     modelCatalogUseCase = mockk(relaxed = true)
-    refreshUseCase = mockk(relaxed = true)
-    listHuggingFaceModelsUseCase = mockk(relaxed = true)
+    refreshModelCatalogUseCase = mockk(relaxed = true)
+    huggingFaceCatalogUseCase = mockk(relaxed = true)
     compatibilityChecker = mockk(relaxed = true)
-    modelConverter = mockk(relaxed = true)
+    hfToModelConverter = mockk(relaxed = true)
     downloadModelUseCase = mockk(relaxed = true)
     manageModelUseCase = mockk(relaxed = true)
     downloadManager = DownloadManager(downloadModelUseCase, manageModelUseCase)
 
     // Setup default behaviors
-    coEvery { refreshUseCase.invoke() } returns NanoAIResult.success(Unit)
+    coEvery { refreshModelCatalogUseCase.invoke() } returns NanoAIResult.success(Unit)
 
-    // Setup ModelCatalogUseCase to delegate to repository
-    coEvery { modelCatalogUseCase.getAllModels() } coAnswers
-      {
-        NanoAIResult.success(modelCatalogRepository.getAllModels())
-      }
+    // Setup ModelCatalogUseCase mocks
+    every { modelCatalogUseCase.observeAllModels() } answers { allModelsState }
+    every { modelCatalogUseCase.observeInstalledModels() } answers { installedModelsState }
+
+    // Removed coEvery for getAllModels - not used in these tests
     coEvery { modelCatalogUseCase.getModel(any()) } coAnswers
       {
-        NanoAIResult.success(modelCatalogRepository.getModel(firstArg()))
+        NanoAIResult.success(fakeRepository.getModel(firstArg<String>()))
       }
     coEvery { modelCatalogUseCase.upsertModel(any()) } coAnswers
       {
-        modelCatalogRepository.upsertModel(firstArg())
+        fakeRepository.upsertModel(firstArg<ModelPackage>())
         NanoAIResult.success(Unit)
       }
     coEvery { modelCatalogUseCase.recordOfflineFallback(any(), any(), any()) } coAnswers
       {
-        modelCatalogRepository.recordOfflineFallback(firstArg(), secondArg(), thirdArg())
+        fakeRepository.recordOfflineFallback(
+          firstArg<String>(),
+          secondArg<Int>(),
+          thirdArg<String?>(),
+        )
         NanoAIResult.success(Unit)
       }
 
     viewModel =
       ModelLibraryViewModel(
-        modelCatalogRepository,
         modelCatalogUseCase,
-        refreshUseCase,
+        refreshModelCatalogUseCase,
         downloadManager,
         downloadModelUseCase,
-        modelConverter,
-        listHuggingFaceModelsUseCase,
+        hfToModelConverter,
+        huggingFaceCatalogUseCase,
         compatibilityChecker,
       )
   }
@@ -102,7 +112,7 @@ class ModelLibraryViewModelTest {
   @Test
   fun `init triggers catalog refresh`() = runTest {
     advanceUntilIdle()
-    coVerify(exactly = 1) { refreshUseCase.invoke() }
+    coVerify(exactly = 1) { refreshModelCatalogUseCase.invoke() }
   }
 
   @Test
@@ -117,12 +127,12 @@ class ModelLibraryViewModelTest {
       assertThat(awaitItem()).isFalse()
     }
 
-    coVerify(atLeast = 1) { refreshUseCase.invoke() }
+    coVerify(atLeast = 1) { refreshModelCatalogUseCase.invoke() }
   }
 
   @Test
   fun `refreshCatalog shows loading when catalog is empty`() = runTest {
-    modelCatalogRepository.clearAll()
+    fakeRepository.clearAll()
 
     viewModel.isLoading.test {
       assertThat(awaitItem()).isFalse()
@@ -143,12 +153,13 @@ class ModelLibraryViewModelTest {
     advanceUntilIdle()
 
     // Should only invoke once (first call) as subsequent calls are ignored while refreshing
-    coVerify(atLeast = 1) { refreshUseCase.invoke() }
+    coVerify(atLeast = 1) { refreshModelCatalogUseCase.invoke() }
   }
 
   @Test
   fun `refreshCatalog emits error on failure`() = runTest {
-    coEvery { refreshUseCase.invoke() } returns NanoAIResult.recoverable(message = "Refresh failed")
+    coEvery { refreshModelCatalogUseCase.invoke() } returns
+      NanoAIResult.recoverable(message = "Refresh failed")
 
     viewModel.errorEvents.test {
       viewModel.refreshCatalog()
@@ -162,22 +173,23 @@ class ModelLibraryViewModelTest {
 
   @Test
   fun `refreshCatalog records offline fallback on error`() = runTest {
-    coEvery { refreshUseCase.invoke() } returns NanoAIResult.recoverable(message = "Refresh failed")
+    coEvery { refreshModelCatalogUseCase.invoke() } returns
+      NanoAIResult.recoverable(message = "Refresh failed")
     val existingModel = DomainTestBuilders.buildModelPackage(modelId = "cached-model")
-    modelCatalogRepository.addModel(existingModel)
+    fakeRepository.addModel(existingModel)
 
     viewModel.refreshCatalog()
     advanceUntilIdle()
 
     // Verify repository recorded the offline fallback
-    assertThat(modelCatalogRepository.lastOfflineFallbackReason).isNotNull()
+    assertThat(fakeRepository.lastOfflineFallbackReason).isNotNull()
   }
 
   @Test
   fun `allModels exposes catalog from repository`() = runTest {
     val model1 = DomainTestBuilders.buildModelPackage(modelId = "model-1", displayName = "Model 1")
     val model2 = DomainTestBuilders.buildModelPackage(modelId = "model-2", displayName = "Model 2")
-    modelCatalogRepository.setModels(listOf(model1, model2))
+    fakeRepository.setModels(listOf(model1, model2))
 
     advanceUntilIdle()
 
@@ -200,7 +212,7 @@ class ModelLibraryViewModelTest {
         modelId = "not-installed",
         installState = InstallState.NOT_INSTALLED,
       )
-    modelCatalogRepository.setModels(listOf(installed, notInstalled))
+    fakeRepository.setModels(listOf(installed, notInstalled))
 
     advanceUntilIdle()
 
@@ -215,7 +227,7 @@ class ModelLibraryViewModelTest {
   fun `updateSearchQuery filters models by name`() = runTest {
     val model1 = DomainTestBuilders.buildModelPackage(modelId = "m1", displayName = "GPT Model")
     val model2 = DomainTestBuilders.buildModelPackage(modelId = "m2", displayName = "BERT Model")
-    modelCatalogRepository.setModels(listOf(model1, model2))
+    fakeRepository.setModels(listOf(model1, model2))
 
     viewModel.updateSearchQuery("GPT")
     advanceUntilIdle()
@@ -240,7 +252,7 @@ class ModelLibraryViewModelTest {
         modelId = "cloud-1",
         providerType = ProviderType.CLOUD_API,
       )
-    modelCatalogRepository.setModels(listOf(local, cloud))
+    fakeRepository.setModels(listOf(local, cloud))
 
     viewModel.selectLocalLibrary(ProviderType.MEDIA_PIPE)
     advanceUntilIdle()
@@ -386,7 +398,7 @@ class ModelLibraryViewModelTest {
         modelId = "available",
         installState = InstallState.NOT_INSTALLED,
       )
-    modelCatalogRepository.setModels(listOf(error, installed, available))
+    fakeRepository.setModels(listOf(error, installed, available))
 
     advanceUntilIdle()
 
@@ -417,7 +429,7 @@ class ModelLibraryViewModelTest {
         modelId = "a1",
         installState = InstallState.NOT_INSTALLED,
       )
-    modelCatalogRepository.setModels(listOf(installed1, installed2, available))
+    fakeRepository.setModels(listOf(installed1, installed2, available))
 
     advanceUntilIdle()
 
@@ -451,7 +463,7 @@ class ModelLibraryViewModelTest {
       DomainTestBuilders.buildModelPackage(modelId = "l2", providerType = ProviderType.MEDIA_PIPE)
     val cloud =
       DomainTestBuilders.buildModelPackage(modelId = "c1", providerType = ProviderType.CLOUD_API)
-    modelCatalogRepository.setModels(listOf(local1, local2, cloud))
+    fakeRepository.setModels(listOf(local1, local2, cloud))
 
     advanceUntilIdle()
 
@@ -468,7 +480,7 @@ class ModelLibraryViewModelTest {
       DomainTestBuilders.buildModelPackage(modelId = "m1", capabilities = setOf("text", "image"))
     val model2 =
       DomainTestBuilders.buildModelPackage(modelId = "m2", capabilities = setOf("text", "audio"))
-    modelCatalogRepository.setModels(listOf(model1, model2))
+    fakeRepository.setModels(listOf(model1, model2))
 
     advanceUntilIdle()
 
@@ -542,7 +554,7 @@ class ModelLibraryViewModelTest {
 
   @Test
   fun `refreshCatalog_updatesStateOnSuccess`() = runTest {
-    coEvery { refreshUseCase.invoke() } returns NanoAIResult.success(Unit)
+    coEvery { refreshModelCatalogUseCase.invoke() } returns NanoAIResult.success(Unit)
 
     viewModel.isRefreshing.test {
       assertThat(awaitItem()).isFalse()
@@ -557,7 +569,8 @@ class ModelLibraryViewModelTest {
 
   @Test
   fun `refreshCatalog_showsOfflineFallbackOnFailure`() = runTest {
-    coEvery { refreshUseCase.invoke() } returns NanoAIResult.recoverable(message = "Network error")
+    coEvery { refreshModelCatalogUseCase.invoke() } returns
+      NanoAIResult.recoverable(message = "Network error")
 
     viewModel.errorEvents.test {
       viewModel.refreshCatalog()
@@ -582,7 +595,7 @@ class ModelLibraryViewModelTest {
         modelId = "cloud-model",
         providerType = ProviderType.CLOUD_API,
       )
-    modelCatalogRepository.setModels(listOf(localModel, cloudModel))
+    fakeRepository.setModels(listOf(localModel, cloudModel))
 
     viewModel.selectLocalLibrary(ProviderType.MEDIA_PIPE)
     advanceUntilIdle()
@@ -608,7 +621,7 @@ class ModelLibraryViewModelTest {
       )
     val model2 =
       DomainTestBuilders.buildModelPackage(modelId = "model-2", capabilities = setOf("audio"))
-    modelCatalogRepository.setModels(listOf(model1, model2))
+    fakeRepository.setModels(listOf(model1, model2))
 
     viewModel.setPipeline("text")
     advanceUntilIdle()
@@ -631,7 +644,7 @@ class ModelLibraryViewModelTest {
       DomainTestBuilders.buildModelPackage(modelId = "gpt-model", displayName = "GPT Model")
     val model2 =
       DomainTestBuilders.buildModelPackage(modelId = "bert-model", displayName = "BERT Model")
-    modelCatalogRepository.setModels(listOf(model1, model2))
+    fakeRepository.setModels(listOf(model1, model2))
 
     viewModel.updateSearchQuery("gpt")
     advanceUntilIdle()

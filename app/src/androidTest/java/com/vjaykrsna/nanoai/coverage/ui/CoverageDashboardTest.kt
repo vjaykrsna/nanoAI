@@ -6,7 +6,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vjaykrsna.nanoai.coverage.model.CoverageMetric
 import com.vjaykrsna.nanoai.coverage.model.TestLayer
 import com.vjaykrsna.nanoai.coverage.ui.CoverageDashboardBanner.OFFLINE_ANNOUNCEMENT
@@ -16,13 +15,12 @@ import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.extension.ExtendWith
 
-@RunWith(AndroidJUnit4::class)
+@ExtendWith(TestEnvironmentRule::class)
 class CoverageDashboardTest {
 
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createComposeRule()
+  @get:Rule val composeRule = createComposeRule()
 
   @Test
   fun coverageLayersDisplayPercentagesAndTargets() {
@@ -48,7 +46,7 @@ class CoverageDashboardTest {
       )
 
     composeRule.setContent {
-      NanoAITheme {
+      NanoAITheme(dynamicColor = false) {
         CoverageDashboardScreen(
           state = state,
           onRefresh = {},
@@ -101,7 +99,7 @@ class CoverageDashboardTest {
       )
 
     composeRule.setContent {
-      NanoAITheme {
+      NanoAITheme(dynamicColor = false) {
         CoverageDashboardScreen(
           state = state,
           onRefresh = {},
@@ -147,7 +145,7 @@ class CoverageDashboardTest {
       )
 
     composeRule.setContent {
-      NanoAITheme {
+      NanoAITheme(dynamicColor = false) {
         CoverageDashboardScreen(
           state = state,
           onRefresh = {},

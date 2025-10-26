@@ -10,10 +10,11 @@ import com.vjaykrsna.nanoai.core.common.onSuccess
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreference
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreferenceStore
 import com.vjaykrsna.nanoai.core.data.preferences.RetentionPolicy
-import com.vjaykrsna.nanoai.core.data.repository.ApiProviderConfigRepository
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.feature.library.domain.ModelDownloadsAndExportUseCase
+import com.vjaykrsna.nanoai.feature.settings.domain.ApiProviderConfigUseCase
 import com.vjaykrsna.nanoai.feature.settings.domain.ImportService
 import com.vjaykrsna.nanoai.feature.settings.domain.ImportSummary
 import com.vjaykrsna.nanoai.feature.settings.domain.huggingface.HuggingFaceAuthCoordinator
@@ -45,9 +46,10 @@ import kotlinx.datetime.Clock
 class SettingsViewModel
 @Inject
 constructor(
-  private val apiProviderConfigRepository: ApiProviderConfigRepository,
+  private val apiProviderConfigUseCase: ApiProviderConfigUseCase,
   private val modelDownloadsAndExportUseCase: ModelDownloadsAndExportUseCase,
   private val privacyPreferenceStore: PrivacyPreferenceStore,
+  private val uiPreferencesStore: UiPreferencesStore,
   private val importService: ImportService,
   private val observeUserProfileUseCase: ObserveUserProfileUseCase,
   private val settingsOperationsUseCase: SettingsOperationsUseCase,
@@ -77,7 +79,7 @@ constructor(
     huggingFaceAuthCoordinator.deviceAuthState
 
   val apiProviders: StateFlow<List<APIProviderConfig>> =
-    apiProviderConfigRepository
+    apiProviderConfigUseCase
       .observeAllProviders()
       .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -94,6 +96,13 @@ constructor(
       ),
     )
 
+  val uiPreferences: StateFlow<com.vjaykrsna.nanoai.core.data.preferences.UiPreferences> =
+    uiPreferencesStore.uiPreferences.stateIn(
+      viewModelScope,
+      SharingStarted.Eagerly,
+      com.vjaykrsna.nanoai.core.data.preferences.UiPreferences(),
+    )
+
   init {
     observeUserProfileUseCase.flow
       .onEach { result ->
@@ -104,6 +113,14 @@ constructor(
             compactModeEnabled = profile?.compactMode ?: false,
             undoAvailable = previousUiUxState != null,
           )
+        }
+      }
+      .launchIn(viewModelScope)
+
+    uiPreferences
+      .onEach { prefs ->
+        _uiUxState.update { current ->
+          current.copy(highContrastEnabled = prefs.highContrastEnabled)
         }
       }
       .launchIn(viewModelScope)
@@ -129,12 +146,11 @@ constructor(
   fun addApiProvider(config: APIProviderConfig) {
     viewModelScope.launch {
       _isLoading.value = true
-      runCatching { apiProviderConfigRepository.addProvider(config) }
-        .onFailure { error ->
-          _errorEvents.emit(
-            SettingsError.ProviderAddFailed(error.message ?: "Failed to add provider")
-          )
-        }
+      apiProviderConfigUseCase.addProvider(config).onFailure { error ->
+        _errorEvents.emit(
+          SettingsError.ProviderAddFailed(error.message ?: "Failed to add provider")
+        )
+      }
       _isLoading.value = false
     }
   }
@@ -142,12 +158,11 @@ constructor(
   fun updateApiProvider(config: APIProviderConfig) {
     viewModelScope.launch {
       _isLoading.value = true
-      runCatching { apiProviderConfigRepository.updateProvider(config) }
-        .onFailure { error ->
-          _errorEvents.emit(
-            SettingsError.ProviderUpdateFailed(error.message ?: "Failed to update provider")
-          )
-        }
+      apiProviderConfigUseCase.updateProvider(config).onFailure { error ->
+        _errorEvents.emit(
+          SettingsError.ProviderUpdateFailed(error.message ?: "Failed to update provider")
+        )
+      }
       _isLoading.value = false
     }
   }
@@ -155,12 +170,11 @@ constructor(
   fun deleteApiProvider(providerId: String) {
     viewModelScope.launch {
       _isLoading.value = true
-      runCatching { apiProviderConfigRepository.deleteProvider(providerId) }
-        .onFailure { error ->
-          _errorEvents.emit(
-            SettingsError.ProviderDeleteFailed(error.message ?: "Failed to delete provider")
-          )
-        }
+      apiProviderConfigUseCase.deleteProvider(providerId).onFailure { error ->
+        _errorEvents.emit(
+          SettingsError.ProviderDeleteFailed(error.message ?: "Failed to delete provider")
+        )
+      }
       _isLoading.value = false
     }
   }
@@ -269,6 +283,17 @@ constructor(
       )
     }
     viewModelScope.launch { toggleCompactModeUseCase.toggle(enabled) }
+  }
+
+  fun setHighContrastEnabled(enabled: Boolean) {
+    _uiUxState.update {
+      it.copy(
+        highContrastEnabled = enabled,
+        undoAvailable = true,
+        statusMessage = if (enabled) "High contrast enabled" else "High contrast disabled",
+      )
+    }
+    viewModelScope.launch { uiPreferencesStore.setHighContrastEnabled(enabled) }
   }
 
   fun undoUiPreferenceChange() {
@@ -383,6 +408,7 @@ sealed class SettingsError {
 data class SettingsUiUxState(
   val themePreference: ThemePreference = ThemePreference.SYSTEM,
   val compactModeEnabled: Boolean = false,
+  val highContrastEnabled: Boolean = false,
   val undoAvailable: Boolean = false,
   val statusMessage: String? = null,
   val showMigrationSuccessNotification: Boolean = false,

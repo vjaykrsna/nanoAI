@@ -41,6 +41,7 @@ import com.vjaykrsna.nanoai.feature.uiux.presentation.ModeId
 import com.vjaykrsna.nanoai.feature.uiux.presentation.RightPanel
 import com.vjaykrsna.nanoai.feature.uiux.presentation.ShellViewModel
 import com.vjaykrsna.nanoai.feature.uiux.presentation.navigation.NavigationScaffold
+import com.vjaykrsna.nanoai.feature.uiux.ui.shell.ShellUiEvent
 import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -78,10 +79,11 @@ class MainActivity : ComponentActivity() {
           when {
             layout.isRightDrawerOpen -> {
               val panel = layout.activeRightPanel ?: RightPanel.MODEL_SELECTOR
-              shellViewModel.toggleRightDrawer(panel)
+              shellViewModel.onEvent(ShellUiEvent.ToggleRightDrawer(panel))
             }
-            layout.isLeftDrawerOpen -> shellViewModel.toggleLeftDrawer()
-            layout.activeMode != ModeId.HOME -> shellViewModel.openMode(ModeId.HOME)
+            layout.isLeftDrawerOpen -> shellViewModel.onEvent(ShellUiEvent.ToggleLeftDrawer)
+            layout.activeMode != ModeId.HOME ->
+              shellViewModel.onEvent(ShellUiEvent.ModeSelected(ModeId.HOME))
             else -> {
               isEnabled = false
               onBackPressedDispatcher.onBackPressed()
@@ -104,9 +106,20 @@ class MainActivity : ComponentActivity() {
       val appViewModel: AppViewModel = hiltViewModel()
       val appUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
-      NanoAITheme(themePreference = appUiState.themePreference) {
+      NanoAITheme(
+        themePreference = appUiState.themePreference,
+        highContrastEnabled = appUiState.highContrastEnabled,
+      ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          if (appUiState.isHydrating) {
+          if (appUiState.disclaimer.shouldShow) {
+            NavigationScaffold(
+              appState = appUiState,
+              windowSizeClass = windowSizeClass,
+              shellViewModel = shellViewModel,
+              onDisclaimerShow = appViewModel::onDisclaimerDisplayed,
+              onDisclaimerAccept = appViewModel::onDisclaimerAccepted,
+            )
+          } else if (appUiState.isHydrating) {
             AppHydrationState(isOffline = appUiState.offline)
           } else {
             NavigationScaffold(

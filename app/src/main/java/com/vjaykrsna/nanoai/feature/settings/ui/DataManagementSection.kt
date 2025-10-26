@@ -25,11 +25,34 @@ import androidx.compose.ui.unit.dp
 internal fun DataManagementSection(
   onImportBackupClick: () -> Unit,
   onExportBackupClick: () -> Unit,
+) {
+  BackupRestoreCard(
+    onImportBackupClick = onImportBackupClick,
+    onExportBackupClick = onExportBackupClick,
+  )
+}
+
+@Composable
+private fun BackupRestoreCard(
+  onImportBackupClick: () -> Unit,
+  onExportBackupClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  SettingsSection(title = "Backup & Restore", modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      DataManagementCard(
+  Card(
+    modifier = modifier.fillMaxWidth(),
+    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+  ) {
+    Column(
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      Text(
+        text = "Backup & Restore",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+      )
+
+      DataManagementItemCard(
         title = "Import Backup",
         description = "Restore personas, providers, and settings from a backup file",
         icon = Icons.Default.Add,
@@ -37,7 +60,7 @@ internal fun DataManagementSection(
         onClick = onImportBackupClick,
       )
 
-      DataManagementCard(
+      DataManagementItemCard(
         title = "Export Backup",
         description = "Export conversations, personas, and settings",
         icon = Icons.Default.Edit,
@@ -49,7 +72,7 @@ internal fun DataManagementSection(
 }
 
 @Composable
-private fun DataManagementCard(
+private fun DataManagementItemCard(
   title: String,
   description: String,
   icon: ImageVector,

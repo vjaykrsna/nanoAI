@@ -120,6 +120,7 @@ data class UiPreferencesSnapshot(
   var pinnedTools: List<String> = emptyList(),
   var commandPaletteRecents: List<String> = emptyList(),
   val connectivityBannerLastDismissed: Instant? = null,
+  val highContrastEnabled: Boolean = false,
 ) {
   init {
     pinnedTools = sanitizePinnedTools(pinnedTools)
@@ -136,4 +137,5 @@ fun UserProfile.toPreferencesSnapshot(): UiPreferencesSnapshot =
     pinnedTools = pinnedTools,
     commandPaletteRecents = emptyList(),
     connectivityBannerLastDismissed = null,
+    highContrastEnabled = false, // TODO: add to UserProfile if needed
   )

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreference
 import com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig
@@ -22,9 +21,7 @@ import com.vjaykrsna.nanoai.feature.settings.ui.SettingsScreenContent
 import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
 /**
  * Contract test for Settings screen (FR-008).
@@ -33,12 +30,11 @@ import org.junit.runner.RunWith
  * the legacy provider/backup controls in their dedicated sections.
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
 @Ignore("Settings contract expectations pending finalized copy; see specs/003-UI-UX/plan.md")
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class SettingsScreenContractTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createComposeRule()
+  @org.junit.jupiter.api.extension.RegisterExtension @JvmField val composeRule = createComposeRule()
 
   private val sampleProvider =
     APIProviderConfig(
@@ -70,6 +66,7 @@ class SettingsScreenContractTest {
       onDismissMigrationSuccess = {},
       onThemePreferenceChange = {},
       onVisualDensityChange = {},
+      onHighContrastChange = {},
       onHuggingFaceLoginClick = {},
       onHuggingFaceApiKeyClick = {},
       onHuggingFaceDisconnectClick = {},
@@ -95,12 +92,11 @@ class SettingsScreenContractTest {
     composeRule.onNodeWithText("Appearance").assertIsDisplayed()
     composeRule.onNodeWithText("Appearance").assertHasClickAction()
     composeRule.onNodeWithText("Appearance").performClick()
-    composeRule.waitUntilExactlyOneExists(
-      hasText("Switch between light, dark, or follow the system theme.")
-    )
-    composeRule
-      .onNodeWithText("Switch between light, dark, or follow the system theme.")
-      .assertIsDisplayed()
+    composeRule.waitUntilExactlyOneExists(hasText("System"))
+    composeRule.onNodeWithText("System").assertIsDisplayed()
+    composeRule.onNodeWithText("Light").assertIsDisplayed()
+    composeRule.onNodeWithText("Dark").assertIsDisplayed()
+    composeRule.onNodeWithText("AMOLED").assertIsDisplayed()
   }
 
   @Test

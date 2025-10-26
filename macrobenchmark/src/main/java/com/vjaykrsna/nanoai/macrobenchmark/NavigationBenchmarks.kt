@@ -13,7 +13,7 @@ import androidx.test.uiautomator.Until
 import com.google.common.truth.Truth.assertThat
 import kotlin.math.roundToInt
 import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 
 /** Macrobenchmark coverage for navigation and mode switching latency budgets. */

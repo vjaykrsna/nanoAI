@@ -11,6 +11,7 @@ fun List<ModelPackage>.filterBy(filters: LibraryFilterState): List<ModelPackage>
   return this.applyTextSearch(filters.localSearchQuery.trim())
     .applyProviderFilter(filters.localLibrary)
     .applyPipelineFilter(filters.pipelineTag)
+    .applyCapabilityFilter(filters.selectedCapabilities)
     .sortBy(filters.localSort)
 }
 
@@ -24,14 +25,15 @@ private fun List<ModelPackage>.applyTextSearch(query: String): List<ModelPackage
 private fun matchesTextSearch(model: ModelPackage, normalizedQuery: String): Boolean {
   return matchesBasicFields(model, normalizedQuery) ||
     matchesMetadataFields(model, normalizedQuery) ||
-    matchesTechnicalFields(model, normalizedQuery) ||
-    matchesContentFields(model, normalizedQuery)
+    matchesTechnicalFields(model, normalizedQuery)
 }
 
 private fun matchesBasicFields(model: ModelPackage, query: String): Boolean {
   return model.displayName.lowercase(Locale.US).contains(query) ||
     model.modelId.lowercase(Locale.US).contains(query) ||
-    model.capabilities.any { capability -> capability.lowercase(Locale.US).contains(query) }
+    model.capabilities.any { capability -> capability.lowercase(Locale.US).contains(query) } ||
+    model.summary?.lowercase(Locale.US)?.contains(query) == true ||
+    model.description?.lowercase(Locale.US)?.contains(query) == true
 }
 
 private fun matchesMetadataFields(model: ModelPackage, query: String): Boolean {
@@ -46,13 +48,22 @@ private fun matchesTechnicalFields(model: ModelPackage, query: String): Boolean 
     model.modelType?.lowercase(Locale.US)?.contains(query) == true
 }
 
-private fun matchesContentFields(model: ModelPackage, query: String): Boolean {
-  return model.summary?.lowercase(Locale.US)?.contains(query) == true ||
-    model.description?.lowercase(Locale.US)?.contains(query) == true
-}
-
 private fun List<ModelPackage>.applyProviderFilter(provider: ProviderType?): List<ModelPackage> {
   return provider?.let { filter { it.providerType == provider } } ?: this
+}
+
+private fun List<ModelPackage>.applyCapabilityFilter(
+  selectedCapabilities: Set<String>
+): List<ModelPackage> {
+  return if (selectedCapabilities.isEmpty()) {
+    this
+  } else {
+    val normalizedSelected = selectedCapabilities.map { it.lowercase(Locale.US) }.toSet()
+    filter { model ->
+      val modelCapabilities = model.capabilities.map { it.lowercase(Locale.US) }.toSet()
+      normalizedSelected.all { selected -> modelCapabilities.contains(selected) }
+    }
+  }
 }
 
 private fun List<ModelPackage>.applyPipelineFilter(pipeline: String?): List<ModelPackage> {

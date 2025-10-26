@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
  *
  * Provides utilities to verify WCAG compliance, touch targets, and semantic properties.
  */
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class AccessibilityTestHelpers(
   @Suppress("UnusedPrivateProperty") private val composeTestRule: ComposeTestRule
 ) {

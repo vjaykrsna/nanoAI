@@ -16,7 +16,6 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -30,9 +29,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
 /**
  * Visual regression snapshots for the Theme toggle component.
@@ -41,10 +38,9 @@ import org.junit.runner.RunWith
  * `<app internal storage>/files/visual/uiux/` and can be retrieved via adb pull.
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ThemeToggleVisualTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createComposeRule()
+  @org.junit.jupiter.api.extension.RegisterExtension @JvmField val composeRule = createComposeRule()
 
   private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
   private val outputDir: File by lazy {

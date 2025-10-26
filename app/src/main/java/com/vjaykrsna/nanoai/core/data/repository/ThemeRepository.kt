@@ -11,4 +11,6 @@ interface ThemeRepository : BaseRepository {
   suspend fun updateThemePreference(theme: ThemePreference)
 
   suspend fun updateVisualDensity(density: VisualDensity)
+
+  suspend fun updateHighContrastEnabled(enabled: Boolean)
 }

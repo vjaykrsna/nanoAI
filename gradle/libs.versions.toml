@@ -1,17 +1,17 @@
 [versions]
-agp = "8.12.0"
-kotlin = "2.2.0"
+agp = "8.13.0"
+kotlin = "2.2.21"
 ksp = "2.2.20-2.0.4"
 coreKtx = "1.17.0"
-junitJupiter = "5.11.3"
-junitPlatform = "1.11.3"
+junitJupiter = "6.0.0"
+junitPlatform = "6.0.0"
 junitVersion = "1.2.1"
 espressoCore = "3.5.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 
 # Compose
-composeBom = "2025.08.00"
+composeBom = "2024.10.00"
 activityCompose = "1.11.0"
 navigationCompose = "2.8.8"
 lifecycleRuntimeCompose = "2.8.6"
@@ -30,7 +30,7 @@ kotlinxSerialization = "1.9.0"
 okhttp = "4.12.0"
 
 # Database
-room = "2.8.2"
+room = "2.7.2"
 
 # Coroutines
 coroutines = "1.10.2"
@@ -46,7 +46,7 @@ securityCrypto = "1.1.0-alpha06"
 datastore = "1.1.1"
 
 # Hilt
-hilt = "2.57"
+hilt = "2.56.2"
 hiltNavigationCompose = "1.2.0"
 hiltWork = "1.2.0"
 
@@ -63,7 +63,7 @@ turbine = "1.1.0"
 robolectric = "4.13"
 truth = "1.4.4"
 coroutinesTest = "1.10.2"
-composeUiTest = "1.9.4"
+composeUiTest = "1.5.8"
 runner = "1.5.0"
 mockwebserver = "4.12.0"
 androidxTestCore = "1.5.0"
@@ -93,6 +93,7 @@ androidx-compose-material-iconsExtended = { group = "androidx.compose.material",
 androidx-compose-material = { group = "androidx.compose.material", name = "material" }
 androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "composeMaterial3" }
 androidx-compose-runtime-tracing = { group = "androidx.compose.runtime", name = "runtime-tracing" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "navigationCompose" }

@@ -100,7 +100,7 @@ constructor(private val conversationRepository: ConversationRepository) :
     }
   }
 
-  /** Update the persona for a thread. */
+  /** Update a thread's persona. */
   override suspend fun updateThreadPersona(threadId: UUID, personaId: UUID?): NanoAIResult<Unit> {
     return try {
       conversationRepository.updateThreadPersona(threadId, personaId)
@@ -111,6 +111,20 @@ constructor(private val conversationRepository: ConversationRepository) :
         cause = e,
         context =
           mapOf("threadId" to threadId.toString(), "personaId" to (personaId?.toString() ?: "null")),
+      )
+    }
+  }
+
+  /** Update a thread. */
+  suspend fun updateThread(thread: ChatThread): NanoAIResult<Unit> {
+    return try {
+      conversationRepository.updateThread(thread)
+      NanoAIResult.success(Unit)
+    } catch (e: Exception) {
+      NanoAIResult.recoverable(
+        message = "Failed to update thread ${thread.threadId}",
+        cause = e,
+        context = mapOf("threadId" to thread.threadId.toString()),
       )
     }
   }

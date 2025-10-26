@@ -9,12 +9,13 @@ import com.vjaykrsna.nanoai.core.common.NanoAIResult
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreference
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreferenceStore
 import com.vjaykrsna.nanoai.core.data.preferences.RetentionPolicy
-import com.vjaykrsna.nanoai.core.data.repository.ApiProviderConfigRepository
+import com.vjaykrsna.nanoai.core.data.preferences.UiPreferencesStore
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ScreenType
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.core.domain.model.uiux.UserProfile
 import com.vjaykrsna.nanoai.core.domain.model.uiux.VisualDensity
 import com.vjaykrsna.nanoai.feature.library.domain.ModelDownloadsAndExportUseCase
+import com.vjaykrsna.nanoai.feature.settings.domain.ApiProviderConfigUseCase
 import com.vjaykrsna.nanoai.feature.settings.domain.ImportService
 import com.vjaykrsna.nanoai.feature.settings.domain.ImportSummary
 import com.vjaykrsna.nanoai.feature.settings.domain.huggingface.HuggingFaceAuthCoordinator
@@ -47,9 +48,10 @@ class SettingsViewModelTest {
 
   @JvmField @RegisterExtension val mainDispatcherExtension = MainDispatcherExtension()
 
-  private lateinit var apiProviderRepository: ApiProviderConfigRepository
-  private lateinit var downloadsUseCase: ModelDownloadsAndExportUseCase
+  private lateinit var apiProviderConfigUseCase: ApiProviderConfigUseCase
+  private lateinit var modelDownloadsAndExportUseCase: ModelDownloadsAndExportUseCase
   private lateinit var privacyPreferenceStore: PrivacyPreferenceStore
+  private lateinit var uiPreferencesStore: UiPreferencesStore
   private lateinit var importService: ImportService
   private lateinit var observeUserProfileUseCase: ObserveUserProfileUseCase
   private lateinit var settingsOperationsUseCase: SettingsOperationsUseCase
@@ -61,18 +63,26 @@ class SettingsViewModelTest {
 
   @BeforeEach
   fun setup() {
-    apiProviderRepository = mockk(relaxed = true)
-    downloadsUseCase = mockk(relaxed = true)
+    setupMocks()
+    setupDefaultFlows()
+  }
+
+  private fun setupMocks() {
+    apiProviderConfigUseCase = mockk(relaxed = true)
+    modelDownloadsAndExportUseCase = mockk(relaxed = true)
     privacyPreferenceStore = mockk(relaxed = true)
+    uiPreferencesStore = mockk(relaxed = true)
     importService = mockk(relaxed = true)
     observeUserProfileUseCase = mockk(relaxed = true)
     settingsOperationsUseCase = mockk(relaxed = true)
     toggleCompactModeUseCase = mockk(relaxed = true)
     huggingFaceAuthCoordinator = mockk(relaxed = true)
     huggingFaceOAuthConfig = HuggingFaceOAuthConfig(clientId = "test-client", scope = "all")
+    deviceAuthStateFlow = MutableStateFlow(null)
+  }
 
-    // Default mocks
-    every { apiProviderRepository.observeAllProviders() } returns flowOf(emptyList())
+  private fun setupDefaultFlows() {
+    every { apiProviderConfigUseCase.observeAllProviders() } returns flowOf(emptyList())
     every { privacyPreferenceStore.privacyPreference } returns
       flowOf(
         PrivacyPreference(
@@ -105,14 +115,14 @@ class SettingsViewModelTest {
       )
     every { huggingFaceAuthCoordinator.state } returns
       MutableStateFlow(HuggingFaceAuthState(isAuthenticated = false, lastError = null))
-    deviceAuthStateFlow = MutableStateFlow(null)
     every { huggingFaceAuthCoordinator.deviceAuthState } returns deviceAuthStateFlow
 
     viewModel =
       SettingsViewModel(
-        apiProviderRepository,
-        downloadsUseCase,
+        apiProviderConfigUseCase,
+        modelDownloadsAndExportUseCase,
         privacyPreferenceStore,
+        uiPreferencesStore,
         importService,
         observeUserProfileUseCase,
         settingsOperationsUseCase,
@@ -325,7 +335,8 @@ class SettingsViewModelTest {
   @Test
   fun `exportBackup calls use case and emits success`() = runTest {
     val path = "/backup/path"
-    coEvery { downloadsUseCase.exportBackup(path, false) } returns NanoAIResult.success(path)
+    coEvery { modelDownloadsAndExportUseCase.exportBackup(path, false) } returns
+      NanoAIResult.success(path)
 
     viewModel.exportSuccess.test {
       viewModel.exportBackup(path, false)
@@ -338,7 +349,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `exportBackup emits error on failure`() = runTest {
-    coEvery { downloadsUseCase.exportBackup(any(), any()) } returns
+    coEvery { modelDownloadsAndExportUseCase.exportBackup(any(), any()) } returns
       NanoAIResult.recoverable(message = "Export error")
 
     viewModel.errorEvents.test {
@@ -392,9 +403,10 @@ class SettingsViewModelTest {
 
     val vm =
       SettingsViewModel(
-        apiProviderRepository,
-        downloadsUseCase,
+        apiProviderConfigUseCase,
+        modelDownloadsAndExportUseCase,
         privacyPreferenceStore,
+        uiPreferencesStore,
         importService,
         observeUserProfileUseCase,
         settingsOperationsUseCase,
@@ -425,9 +437,10 @@ class SettingsViewModelTest {
 
     val vm =
       SettingsViewModel(
-        apiProviderRepository,
-        downloadsUseCase,
+        apiProviderConfigUseCase,
+        modelDownloadsAndExportUseCase,
         privacyPreferenceStore,
+        uiPreferencesStore,
         importService,
         observeUserProfileUseCase,
         settingsOperationsUseCase,
@@ -485,7 +498,7 @@ class SettingsViewModelTest {
   @Test
   fun `addApiProvider_emitsProviderAddFailedOnError`() = runTest {
     val config = mockk<com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig>()
-    coEvery { apiProviderRepository.addProvider(config) } throws Exception("Network error")
+    coEvery { apiProviderConfigUseCase.addProvider(config) } throws Exception("Network error")
 
     viewModel.errorEvents.test {
       viewModel.addApiProvider(config)
@@ -501,7 +514,7 @@ class SettingsViewModelTest {
   @Test
   fun `updateApiProvider_emitsProviderUpdateFailedOnError`() = runTest {
     val config = mockk<com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig>()
-    coEvery { apiProviderRepository.updateProvider(config) } throws Exception("Update failed")
+    coEvery { apiProviderConfigUseCase.updateProvider(config) } throws Exception("Update failed")
 
     viewModel.errorEvents.test {
       viewModel.updateApiProvider(config)
@@ -517,7 +530,8 @@ class SettingsViewModelTest {
   @Test
   fun `deleteApiProvider_emitsProviderDeleteFailedOnError`() = runTest {
     val providerId = "test-provider-id"
-    coEvery { apiProviderRepository.deleteProvider(providerId) } throws Exception("Delete failed")
+    coEvery { apiProviderConfigUseCase.deleteProvider(providerId) } throws
+      Exception("Delete failed")
 
     viewModel.errorEvents.test {
       viewModel.deleteApiProvider(providerId)
@@ -535,12 +549,12 @@ class SettingsViewModelTest {
     // This test verifies that provider validation occurs within the repository
     // The validation logic would be in the APIProviderConfig data class or repository
     val config = mockk<com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig>()
-    coEvery { apiProviderRepository.addProvider(config) } returns Unit
+    coEvery { apiProviderConfigUseCase.addProvider(config) } returns NanoAIResult.success(Unit)
 
     viewModel.addApiProvider(config)
     advanceUntilIdle()
 
-    coVerify { apiProviderRepository.addProvider(config) }
+    coVerify { apiProviderConfigUseCase.addProvider(config) }
   }
 
   @Test
@@ -597,7 +611,8 @@ class SettingsViewModelTest {
   @Test
   fun `exportData_triggersExportFlow`() = runTest {
     val path = "/test/export/path"
-    coEvery { downloadsUseCase.exportBackup(path, false) } returns NanoAIResult.success(path)
+    coEvery { modelDownloadsAndExportUseCase.exportBackup(path, false) } returns
+      NanoAIResult.success(path)
 
     viewModel.isLoading.test {
       assertThat(awaitItem()).isFalse()

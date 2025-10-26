@@ -2,7 +2,8 @@ package com.vjaykrsna.nanoai.feature.image.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vjaykrsna.nanoai.feature.image.data.ImageGalleryRepository
+import com.vjaykrsna.nanoai.core.common.onFailure
+import com.vjaykrsna.nanoai.feature.image.domain.ImageGalleryUseCase
 import com.vjaykrsna.nanoai.feature.image.domain.model.GeneratedImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
@@ -22,14 +23,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ImageGalleryViewModel
 @Inject
-constructor(private val imageGalleryRepository: ImageGalleryRepository) : ViewModel() {
+constructor(private val imageGalleryUseCase: ImageGalleryUseCase) : ViewModel() {
 
   private companion object {
     private const val STATE_FLOW_STOP_TIMEOUT_MS = 5000L
   }
 
   val images: StateFlow<List<GeneratedImage>> =
-    imageGalleryRepository
+    imageGalleryUseCase
       .observeAllImages()
       .stateIn(
         viewModelScope,
@@ -42,14 +43,18 @@ constructor(private val imageGalleryRepository: ImageGalleryRepository) : ViewMo
 
   fun deleteImage(id: UUID) {
     viewModelScope.launch {
-      imageGalleryRepository.deleteImage(id)
+      imageGalleryUseCase.deleteImage(id).onFailure {
+        // TODO: Handle error
+      }
       _events.emit(ImageGalleryEvent.ImageDeleted)
     }
   }
 
   fun deleteAllImages() {
     viewModelScope.launch {
-      imageGalleryRepository.deleteAllImages()
+      imageGalleryUseCase.deleteAllImages().onFailure {
+        // TODO: Handle error
+      }
       _events.emit(ImageGalleryEvent.AllImagesDeleted)
     }
   }

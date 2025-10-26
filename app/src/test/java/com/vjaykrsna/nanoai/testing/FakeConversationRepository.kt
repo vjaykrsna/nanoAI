@@ -23,6 +23,7 @@ class FakeConversationRepository @Inject constructor() : ConversationRepository 
   var shouldFailOnSaveMessage = false
   var shouldFailOnDeleteThread = false
   var shouldFailOnArchiveThread = false
+  var shouldFailOnGetAllThreads = false
 
   fun addThread(thread: ChatThread) {
     _threads.value += thread
@@ -42,12 +43,18 @@ class FakeConversationRepository @Inject constructor() : ConversationRepository 
     shouldFailOnSaveMessage = false
     shouldFailOnDeleteThread = false
     shouldFailOnArchiveThread = false
+    shouldFailOnGetAllThreads = false
   }
 
   override suspend fun getThread(threadId: UUID): ChatThread? =
     _threads.value.firstOrNull { it.threadId == threadId }
 
-  override suspend fun getAllThreads(): List<ChatThread> = _threads.value.filter { !it.isArchived }
+  override suspend fun getAllThreads(): List<ChatThread> {
+    if (shouldFailOnGetAllThreads) {
+      error("Failed to get all threads")
+    }
+    return _threads.value.filter { !it.isArchived }
+  }
 
   override suspend fun getArchivedThreads(): List<ChatThread> =
     _threads.value.filter { it.isArchived }

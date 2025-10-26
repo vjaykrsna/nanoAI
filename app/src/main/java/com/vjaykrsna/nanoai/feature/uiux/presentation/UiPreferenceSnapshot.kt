@@ -12,6 +12,7 @@ data class UiPreferenceSnapshot(
   val density: VisualDensity = VisualDensity.DEFAULT,
   val fontScale: Float = 1f,
   val dismissedTooltips: Set<String> = emptySet(),
+  val highContrastEnabled: Boolean = false,
 )
 
 /** True when a tooltip with the provided [id] has been dismissed previously. */

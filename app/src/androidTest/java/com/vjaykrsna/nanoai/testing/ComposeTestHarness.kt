@@ -21,6 +21,7 @@ import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
  * }
  * ```
  */
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class ComposeTestHarness(private val composeTestRule: ComposeTestRule) {
   /** Matches a node by its semantic content description. */
   fun hasContentDescription(description: String): SemanticsMatcher =
@@ -148,5 +149,5 @@ sealed class AccessibilityAssertion {
  */
 @Composable
 fun TestingTheme(content: @Composable () -> Unit) {
-  NanoAITheme(content = content)
+  NanoAITheme(dynamicColor = false, content = content)
 }

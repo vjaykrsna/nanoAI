@@ -1,11 +1,10 @@
 package com.vjaykrsna.nanoai.feature.chat
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class PersonaOfflineFlowTest {
   @Ignore("Pending persona instrumentation once backend integrations land.")
   @Test

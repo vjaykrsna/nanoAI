@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -22,7 +21,6 @@ import kotlinx.datetime.Instant
  * Provides reactive Flow-based access to privacy settings and consent tracking. Uses Preferences
  * DataStore for simple key-value storage.
  */
-@Singleton
 class PrivacyPreferenceStore @Inject constructor(@ApplicationContext private val context: Context) {
   companion object {
     private val Context.dataStore: DataStore<Preferences> by

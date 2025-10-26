@@ -3,7 +3,8 @@ package com.vjaykrsna.nanoai.feature.image.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vjaykrsna.nanoai.core.common.MainImmediateDispatcher
-import com.vjaykrsna.nanoai.feature.image.data.ImageGalleryRepository
+import com.vjaykrsna.nanoai.core.common.onFailure
+import com.vjaykrsna.nanoai.feature.image.domain.ImageGalleryUseCase
 import com.vjaykrsna.nanoai.feature.image.domain.model.GeneratedImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
@@ -26,7 +27,7 @@ import kotlinx.datetime.Clock
 class ImageGenerationViewModel
 @Inject
 constructor(
-  private val imageGalleryRepository: ImageGalleryRepository,
+  private val imageGalleryUseCase: ImageGalleryUseCase,
   @MainImmediateDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -96,7 +97,9 @@ constructor(
           createdAt = Clock.System.now(),
         )
 
-      imageGalleryRepository.saveImage(generatedImage)
+      imageGalleryUseCase.saveImage(generatedImage).onFailure {
+        // TODO: Handle error
+      }
 
       _uiState.value =
         _uiState.value.copy(

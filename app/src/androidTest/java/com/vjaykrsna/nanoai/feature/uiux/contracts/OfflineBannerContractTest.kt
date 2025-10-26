@@ -7,14 +7,11 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.MainActivity
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 
 /**
  * Contract test for the Offline banner (FR-006). Ensures offline messaging, disabled-action
@@ -23,11 +20,12 @@ import org.junit.runner.RunWith
  * This test intentionally fails until the UI layer adds the required semantics.
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @Ignore("Offline banner interactions pending telemetry integration; see specs/003-UI-UX/plan.md")
+@org.junit.jupiter.api.extension.ExtendWith(TestEnvironmentRule::class)
 class OfflineBannerContractTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun offlineBanner_displaysMessaging_andDisabledAffordance() {

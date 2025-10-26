@@ -76,6 +76,14 @@ internal fun HuggingFaceAuthCard(
               else -> "Not connected"
             }
 
+          Text(
+            text = "Connect your Hugging Face account to access models and datasets.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+
+          Spacer(modifier = Modifier.height(8.dp))
+
           val statusColor =
             when {
               state.isAuthenticated -> MaterialTheme.colorScheme.primary

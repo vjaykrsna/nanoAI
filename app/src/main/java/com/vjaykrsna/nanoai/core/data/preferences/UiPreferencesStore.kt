@@ -9,7 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ThemePreference
 import com.vjaykrsna.nanoai.core.domain.model.uiux.VisualDensity
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Singleton
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -20,8 +20,9 @@ import kotlinx.datetime.Instant
  * Provides reactive Flow-based access to theme, density, and other UI settings. Uses Preferences
  * DataStore for simple key-value storage with JSON serialization for complex types.
  */
-@Singleton
-class UiPreferencesStore(
+class UiPreferencesStore
+@Inject
+constructor(
   @ApplicationContext private val context: Context,
   private val converters: UiPreferencesConverters,
 ) {
@@ -35,6 +36,7 @@ class UiPreferencesStore(
     private val KEY_COMMAND_PALETTE_RECENTS = stringPreferencesKey("command_palette_recents")
     private val KEY_CONNECTIVITY_BANNER_DISMISSED =
       stringPreferencesKey("connectivity_banner_last_dismissed")
+    private val KEY_HIGH_CONTRAST_ENABLED = stringPreferencesKey("high_contrast_enabled")
     private const val MAX_PINNED_TOOLS = 10
     const val MAX_RECENT_COMMANDS = 12
   }
@@ -55,6 +57,7 @@ class UiPreferencesStore(
           converters.decodeStringList(preferences[KEY_COMMAND_PALETTE_RECENTS]),
         connectivityBannerLastDismissed =
           converters.decodeInstant(preferences[KEY_CONNECTIVITY_BANNER_DISMISSED]),
+        highContrastEnabled = preferences[KEY_HIGH_CONTRAST_ENABLED]?.toBoolean() ?: false,
       )
     }
 
@@ -76,6 +79,17 @@ class UiPreferencesStore(
    */
   suspend fun setVisualDensity(visualDensity: VisualDensity) {
     context.dataStore.edit { preferences -> preferences[KEY_VISUAL_DENSITY] = visualDensity.name }
+  }
+
+  /**
+   * Update high contrast enabled preference.
+   *
+   * @param enabled Whether high contrast mode is enabled
+   */
+  suspend fun setHighContrastEnabled(enabled: Boolean) {
+    context.dataStore.edit { preferences ->
+      preferences[KEY_HIGH_CONTRAST_ENABLED] = enabled.toString()
+    }
   }
 
   /**

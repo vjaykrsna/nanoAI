@@ -12,7 +12,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.Until
 import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 
 /**

@@ -5,6 +5,7 @@ import com.vjaykrsna.nanoai.core.data.repository.ApiProviderConfigRepository
 import com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 
 /** Use case for API provider configuration operations. */
 @Singleton
@@ -12,6 +13,10 @@ class ApiProviderConfigUseCase
 @Inject
 constructor(private val apiProviderConfigRepository: ApiProviderConfigRepository) :
   ApiProviderConfigUseCaseInterface {
+  /** Observe all API providers. */
+  fun observeAllProviders(): Flow<List<APIProviderConfig>> =
+    apiProviderConfigRepository.observeAllProviders()
+
   /** Get all API providers. */
   override suspend fun getAllProviders(): NanoAIResult<List<APIProviderConfig>> {
     return try {
