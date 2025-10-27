@@ -5,16 +5,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import com.vjaykrsna.nanoai.core.domain.model.ChatThread
 import com.vjaykrsna.nanoai.core.model.InferenceMode
 import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import java.util.UUID
 import kotlinx.datetime.Clock
 import org.junit.Before
-import org.junit.Rule
 
 abstract class BaseSidebarContentTest {
 
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule: ComposeContentTestRule = createComposeRule()
+  val composeRule: ComposeContentTestRule = createComposeRule()
 
   protected lateinit var testThreads: List<ChatThread>
   protected var newThreadClicked: Boolean = false
@@ -59,7 +56,9 @@ abstract class BaseSidebarContentTest {
     interactions: SidebarInteractions = SidebarInteractions(),
   ) {
     composeRule.setContent {
-      NanoAITheme { SidebarContent(state = state, interactions = interactions) }
+      NanoAITheme(dynamicColor = false) {
+        SidebarContent(state = state, interactions = interactions)
+      }
     }
     composeRule.waitForIdle()
   }

@@ -7,15 +7,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
 import com.vjaykrsna.nanoai.testing.DomainTestBuilders
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class ModelLibraryScreenFilteringTest : BaseModelLibraryScreenTest() {
 
   @Test
@@ -124,6 +121,9 @@ class ModelLibraryScreenFilteringTest : BaseModelLibraryScreenTest() {
 
     composeTestRule.onNodeWithText("Chat Model", substring = true).assertExists()
     composeTestRule.onNodeWithText("Embedding Model", substring = true).assertExists()
+
+    // Expand filter panel
+    composeTestRule.onNodeWithTag(ModelLibraryUiConstants.FILTER_TOGGLE_TAG).performClick()
 
     composeTestRule.onNodeWithText("Chat", substring = false).assertHasClickAction().performClick()
 

@@ -35,6 +35,14 @@ android {
       freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
   }
+
+  packaging {
+    resources {
+      excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      excludes += "/META-INF/LICENSE.md"
+      excludes += "/META-INF/LICENSE-notice.md"
+    }
+  }
 }
 
 dependencies {
@@ -43,6 +51,7 @@ dependencies {
   implementation(libs.androidx.uiautomator)
   implementation(libs.androidx.benchmark.macro)
   implementation(libs.truth)
+  implementation(libs.junit.jupiter.api)
 }
 
 androidComponents { beforeVariants(selector().all()) { it.enable = it.buildType == "benchmark" } }

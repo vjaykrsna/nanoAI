@@ -26,7 +26,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.feature.uiux.presentation.CommandAction
 import com.vjaykrsna.nanoai.feature.uiux.presentation.CommandCategory
@@ -48,24 +47,21 @@ import com.vjaykrsna.nanoai.feature.uiux.presentation.UndoPayload
 import com.vjaykrsna.nanoai.feature.uiux.ui.shell.NanoShellScaffold
 import com.vjaykrsna.nanoai.feature.uiux.ui.shell.ShellUiEvent
 import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 @OptIn(
   ExperimentalCoroutinesApi::class,
   ExperimentalMaterial3WindowSizeClassApi::class,
   ExperimentalTestApi::class,
 )
-@RunWith(AndroidJUnit4::class)
 class OfflineProgressTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<ComponentActivity>()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeRule = createAndroidComposeRule<ComponentActivity>()
 
   @Test
   fun offlineBanner_showsQueuedCount() {

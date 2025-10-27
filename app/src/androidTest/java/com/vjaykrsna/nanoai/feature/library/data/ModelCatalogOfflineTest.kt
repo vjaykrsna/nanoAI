@@ -3,7 +3,6 @@ package com.vjaykrsna.nanoai.feature.library.data
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
@@ -29,12 +28,10 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterEach
 
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class ModelCatalogOfflineTest {
 
@@ -71,7 +68,7 @@ class ModelCatalogOfflineTest {
     useCase = RefreshModelCatalogUseCase(failingSource, repository)
   }
 
-  @After
+  @AfterEach
   fun tearDown() {
     database.close()
     mockWebServer.shutdown()

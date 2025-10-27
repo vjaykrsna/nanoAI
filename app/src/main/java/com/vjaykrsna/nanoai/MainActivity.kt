@@ -111,7 +111,15 @@ class MainActivity : ComponentActivity() {
         highContrastEnabled = appUiState.highContrastEnabled,
       ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          if (appUiState.isHydrating) {
+          if (appUiState.disclaimer.shouldShow) {
+            NavigationScaffold(
+              appState = appUiState,
+              windowSizeClass = windowSizeClass,
+              shellViewModel = shellViewModel,
+              onDisclaimerShow = appViewModel::onDisclaimerDisplayed,
+              onDisclaimerAccept = appViewModel::onDisclaimerAccepted,
+            )
+          } else if (appUiState.isHydrating) {
             AppHydrationState(isOffline = appUiState.offline)
           } else {
             NavigationScaffold(

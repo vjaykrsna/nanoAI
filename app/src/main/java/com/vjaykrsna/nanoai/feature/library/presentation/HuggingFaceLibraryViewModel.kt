@@ -46,7 +46,7 @@ constructor(
           .distinctBy { it.lowercase(Locale.US) }
           .sortedBy { it.lowercase(Locale.US) }
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
   val libraryOptions: StateFlow<List<String>> =
     models
@@ -56,7 +56,7 @@ constructor(
           .distinctBy { it.lowercase(Locale.US) }
           .sortedBy { it.lowercase(Locale.US) }
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
   val downloadableModelIds: StateFlow<Set<String>> =
     models
@@ -66,7 +66,7 @@ constructor(
           .map { it.modelId }
           .toSet()
       }
-      .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+      .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
   private val _isLoading = MutableStateFlow(false)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

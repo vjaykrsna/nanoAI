@@ -3,7 +3,6 @@ package com.vjaykrsna.nanoai.feature.library.data
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.vjaykrsna.nanoai.core.data.db.NanoAIDatabase
 import com.vjaykrsna.nanoai.core.domain.model.ModelPackage
@@ -12,7 +11,6 @@ import com.vjaykrsna.nanoai.feature.library.data.impl.ModelCatalogRepositoryImpl
 import com.vjaykrsna.nanoai.feature.library.data.leap.LeapModelRemoteDataSource
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import io.mockk.mockk
 import java.io.File
 import java.util.UUID
@@ -20,17 +18,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Instant
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterEach
 
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class ModelCatalogRepositoryImplTest {
-
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
 
   private lateinit var context: Context
   private lateinit var database: NanoAIDatabase
@@ -56,7 +49,7 @@ class ModelCatalogRepositoryImplTest {
       )
   }
 
-  @After
+  @AfterEach
   fun tearDown() {
     database.close()
   }

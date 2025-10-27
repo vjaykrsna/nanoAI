@@ -5,7 +5,7 @@ Auto-generated from all feature plans and agent rules. Last updated: 2025-10-25
 *Updated project structure to reflect actual codebase: verified active modules (:app, :macrobenchmark), confirmed 6 feature modules with 4-layer architecture (data/domain/presentation/ui), documented correct core module organization (9 modules), and aligned with real code structure.*
 
 ## Active Technologies (main)
-- Kotlin 2.2.0 (JDK 17 baseline), Jetpack Compose Material 3, Hilt, WorkManager, Room (SQLite database), DataStore (preferences), Retrofit + Kotlin Serialization, OkHttp, MediaPipe Generative (LiteRT), Coil, Kotlin Coroutines, Junit5
+- Kotlin 2.2.0 (JDK 17 baseline), Jetpack Compose Material 3, Hilt, WorkManager, Room (SQLite database), DataStore (preferences), Retrofit + Kotlin Serialization, OkHttp, MediaPipe Generative (LiteRT), Coil, Kotlin Coroutines, JUnit5
 
 See `gradle/libs.versions.toml` for version details and updates.
 

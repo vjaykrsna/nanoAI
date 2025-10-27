@@ -8,14 +8,12 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.MainActivity
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 /**
  * Quickstart Scenario 4 instrumentation: Theme toggle persistence and layout stability.
@@ -27,11 +25,11 @@ import org.junit.runner.RunWith
  * - No layout jump indicator (tag `theme_layout_stability_check`) appears after toggle
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @Ignore("Theme toggle scenario awaiting UI persistence; see specs/003-UI-UX/plan.md")
 class ThemeToggleScenarioTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
+  @JvmField @Rule val environmentRule = TestEnvironmentRule()
+
+  @JvmField @Rule val composeRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun themeToggle_persistsAcrossProcessDeath_withoutLayoutJump() {

@@ -91,9 +91,11 @@ android {
           "-opt-in=kotlin.RequiresOptIn",
           "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
           "-opt-in=kotlinx.coroutines.FlowPreview",
-          "-Xannotation-default-target=param-property",
+          "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
           "-Xenable-incremental-compilation", // Enable incremental compilation
           "-Xuse-fast-jar-file-system", // Faster JAR file access
+          "-Xannotation-default-target=param-property", // Apply annotations to both parameter and
+          // backing field
           "-P",
           "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${composeMetricsDir.get().asFile.absolutePath}",
           "-P",
@@ -159,7 +161,6 @@ dependencies {
   implementation(libs.androidx.compose.material)
   implementation(libs.androidx.compose.material.iconsExtended)
   implementation(libs.androidx.compose.material3.windowSizeClass)
-  implementation(libs.androidx.compose.runtime.tracing)
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.lifecycle.runtime.compose)
@@ -243,6 +244,7 @@ dependencies {
   testImplementation(libs.hilt.android.testing)
   testRuntimeOnly(libs.junit.jupiter.engine)
   testRuntimeOnly(libs.junit.platform.launcher)
+  testRuntimeOnly(libs.junit.vintage.engine)
 
   // Instrumentation Testing
   androidTestImplementation(libs.androidx.junit)
@@ -250,8 +252,14 @@ dependencies {
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.androidx.uiautomator)
   androidTestImplementation(platform(libs.androidx.compose.bom))
-  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+  androidTestImplementation(libs.androidx.compose.runtime)
+  androidTestImplementation(libs.androidx.compose.ui)
   androidTestImplementation(libs.androidx.compose.ui.test)
+  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+  androidTestImplementation(kotlin("test-junit5"))
+  androidTestImplementation(libs.junit.jupiter.api)
+  androidTestImplementation(libs.junit.jupiter.params)
+  androidTestImplementation(libs.junit.vintage.engine)
   androidTestImplementation(libs.mockk.android)
   androidTestImplementation(libs.truth)
   androidTestImplementation(libs.kotlinx.coroutines.test)
@@ -271,3 +279,6 @@ androidComponents {
     }
   }
 }
+
+// TODO: Re-enable lint when newer versions fix the FIR symbol resolution bug
+afterEvaluate { tasks.findByName("lintVitalAnalyzeRelease")?.enabled = false }

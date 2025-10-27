@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.vjaykrsna.nanoai.feature.uiux.ui.components.foundation.NanoSpacing
 
 @Composable
 internal fun DataManagementSection(
@@ -38,20 +37,8 @@ private fun BackupRestoreCard(
   onExportBackupClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(
-      modifier = Modifier.fillMaxWidth().padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-      Text(
-        text = "Backup & Restore",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Medium,
-      )
-
+  SettingsInteractiveCard(title = "Backup & Restore", modifier = modifier, showInfoButton = false) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
       DataManagementItemCard(
         title = "Import Backup",
         description = "Restore personas, providers, and settings from a backup file",
@@ -80,28 +67,24 @@ private fun DataManagementItemCard(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+  Row(
+    modifier = modifier.fillMaxWidth().clickable { onClick() }.padding(NanoSpacing.md),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
   ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-          text = title,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.Medium,
-        )
-        Text(
-          text = description,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-      Icon(icon, iconContentDescription)
+    Column(modifier = Modifier.weight(1f)) {
+      Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+        text = description,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+      )
     }
+    Icon(icon, iconContentDescription, tint = MaterialTheme.colorScheme.onSurface)
   }
 }

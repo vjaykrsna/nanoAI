@@ -12,15 +12,13 @@ import com.vjaykrsna.nanoai.feature.library.domain.DownloadStatus
 import com.vjaykrsna.nanoai.feature.library.domain.InstallState
 import com.vjaykrsna.nanoai.feature.library.domain.ProviderType
 import com.vjaykrsna.nanoai.shared.ui.theme.NanoAITheme
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import java.util.UUID
 import kotlinx.datetime.Instant
 import org.junit.Rule
 import org.junit.Test
 
 class ModelLibraryAccessibilityTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<ComponentActivity>()
+  @JvmField @Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
   @Test
   fun modelCard_downloadAndDeleteButtonsExposeContentDescriptions() {

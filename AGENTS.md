@@ -1,7 +1,7 @@
 # nanoAI Agent Rules & Wake-Up Calls
 
 ## Active Technologies (main)
-- Kotlin 2.2.0 (JDK 17 baseline), Jetpack Compose Material 3, Hilt, WorkManager, Room (SQLite database), DataStore (preferences), Retrofit + Kotlin Serialization, OkHttp, MediaPipe Generative (LiteRT), Coil, Kotlin Coroutines, Junit5
+- Kotlin 2.2.0 (JDK 17 baseline), Jetpack Compose Material 3, Hilt, WorkManager, Room (SQLite database), DataStore (preferences), Retrofit + Kotlin Serialization, OkHttp, MediaPipe Generative (LiteRT), Coil, Kotlin Coroutines, JUnit5
 
 See `gradle/libs.versions.toml` for version details and updates.
 

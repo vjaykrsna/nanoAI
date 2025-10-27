@@ -16,6 +16,7 @@ data class LibraryFilterState(
   val pipelineTag: String? = null,
   val localSort: ModelSort = ModelSort.RECOMMENDED,
   val localLibrary: ProviderType? = null,
+  val selectedCapabilities: Set<String> = emptySet(),
   val huggingFaceSort: HuggingFaceSortOption = HuggingFaceSortOption.TRENDING,
   val huggingFaceLibrary: String? = null,
 ) {
@@ -25,19 +26,20 @@ data class LibraryFilterState(
       else -> localSearchQuery
     }
 
-  fun hasActiveFiltersFor(targetTab: ModelLibraryTab = tab): Boolean =
-    when (targetTab) {
-      ModelLibraryTab.HUGGING_FACE ->
-        huggingFaceSearchQuery.isNotBlank() ||
-          pipelineTag != null ||
-          huggingFaceLibrary != null ||
-          huggingFaceSort != HuggingFaceSortOption.TRENDING
-      else ->
-        localSearchQuery.isNotBlank() ||
-          pipelineTag != null ||
-          localLibrary != null ||
-          localSort != ModelSort.RECOMMENDED
+  fun hasActiveFiltersFor(targetTab: ModelLibraryTab = tab): Boolean {
+    if (targetTab == ModelLibraryTab.HUGGING_FACE) {
+      return huggingFaceSearchQuery.isNotBlank() ||
+        pipelineTag != null ||
+        huggingFaceLibrary != null ||
+        huggingFaceSort != HuggingFaceSortOption.TRENDING
+    } else {
+      return localSearchQuery.isNotBlank() ||
+        pipelineTag != null ||
+        localLibrary != null ||
+        selectedCapabilities.isNotEmpty() ||
+        localSort != ModelSort.RECOMMENDED
     }
+  }
 
   fun activeFilterCountFor(targetTab: ModelLibraryTab = tab): Int {
     var count = 0
@@ -49,6 +51,7 @@ data class LibraryFilterState(
       }
       else -> {
         if (localLibrary != null) count++
+        if (selectedCapabilities.isNotEmpty()) count++
         if (localSort != ModelSort.RECOMMENDED) count++
       }
     }

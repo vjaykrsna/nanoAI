@@ -11,25 +11,22 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.MainActivity
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 /**
  * Contract test for the Home screen. Captures FR-002 requirements around layout, ordering, and
  * collapsible tools rail behavior. Assertions currently fail until the new UI exists.
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @Ignore("Pending home hub production data wiring; see specs/003-UI-UX/plan.md")
 class HomeScreenContractTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
+  @JvmField @Rule val environmentRule = TestEnvironmentRule()
+  @JvmField @Rule val composeRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun homeScreen_modeGrid_exposesColumnMetadata() {

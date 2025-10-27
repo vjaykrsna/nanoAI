@@ -5,16 +5,15 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.vjaykrsna.nanoai.feature.library.domain.HuggingFaceModelSummary
-import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import com.vjaykrsna.nanoai.testing.TestingTheme
 import kotlinx.datetime.Instant
-import org.junit.Rule
 import org.junit.Test
 
 class HuggingFaceModelCardTest {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-  @get:Rule val testEnvironmentRule = TestEnvironmentRule()
+  @org.junit.jupiter.api.extension.RegisterExtension
+  @JvmField
+  val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @Test
   fun `displays basic model information`() {

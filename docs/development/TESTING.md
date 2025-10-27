@@ -7,6 +7,7 @@ Use this guide when you need to run nanoAI’s automated checks, add new tests, 
 - **Accessibility + offline parity**: UI tests mirror Material 3 semantics, TalkBack output, and offline fallbacks so no feature ships without assistive coverage.
 - **Deterministic async code**: Coroutine code runs under `kotlinx.coroutines.test` with explicit dispatchers (`MainDispatcherExtension`) to keep flakes out of CI.
 - **Coverage gates as the guardrail**: CI fails if coverage drops below 75 % (ViewModel), 65 % (UI), or 70 % (Data). Reports feed the risk register so leadership signs off with evidence.
+- **JUnit 5 throughout**: All tests use JUnit 5 (Jupiter) for consistent annotations and modern testing features.
 
 | Layer | Target | Measured Via |
 | --- | --- | --- |

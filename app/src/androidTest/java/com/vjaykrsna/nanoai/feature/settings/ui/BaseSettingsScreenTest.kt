@@ -23,8 +23,8 @@ import org.junit.Rule
 @OptIn(ExperimentalTestApi::class)
 abstract class BaseSettingsScreenTest {
 
-  @get:Rule val composeTestRule: ComposeContentTestRule = createComposeRule()
-  @get:Rule val testEnvironmentRule = TestEnvironmentRule()
+  @JvmField @Rule val composeTestRule: ComposeContentTestRule = createComposeRule()
+  @JvmField @Rule val testEnvironmentRule = TestEnvironmentRule()
 
   protected lateinit var viewModel: SettingsViewModel
 

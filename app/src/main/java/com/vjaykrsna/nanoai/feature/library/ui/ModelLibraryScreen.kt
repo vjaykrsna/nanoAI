@@ -65,6 +65,7 @@ fun ModelLibraryScreen(
   val pipelineOptions by viewModel.pipelineOptions.collectAsState()
   val huggingFaceLibraryOptions by viewModel.huggingFaceLibraryOptions.collectAsState()
   val providerOptions by viewModel.providerOptions.collectAsState()
+  val capabilityOptions by viewModel.capabilityOptions.collectAsState()
   val isLoading by viewModel.isLoading.collectAsState()
   val isRefreshing by viewModel.isRefreshing.collectAsState()
   val isHuggingFaceLoading by viewModel.isHuggingFaceLoading.collectAsState()
@@ -130,6 +131,8 @@ fun ModelLibraryScreen(
         selectedLocalLibrary = filters.localLibrary,
         huggingFaceLibraryOptions = huggingFaceLibraryOptions,
         selectedHuggingFaceLibrary = filters.huggingFaceLibrary,
+        capabilityOptions = capabilityOptions,
+        selectedCapabilities = filters.selectedCapabilities,
         activeFilterCount = filters.activeFilterCount,
         onSearchChange = viewModel::updateSearchQuery,
         onPipelineSelect = viewModel::setPipeline,
@@ -137,6 +140,7 @@ fun ModelLibraryScreen(
         onSelectHuggingFaceSort = viewModel::setHuggingFaceSort,
         onSelectLocalLibrary = viewModel::selectLocalLibrary,
         onSelectHuggingFaceLibrary = viewModel::setHuggingFaceLibrary,
+        onToggleCapability = viewModel::toggleCapability,
       )
 
       ModelLibraryTabs(selectedTab = filters.tab, onTabSelect = viewModel::selectTab)

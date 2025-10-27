@@ -30,7 +30,7 @@ class ImportExportContractTest {
     assertThat(classLoader).isNotNull()
     val sampleUrl = classLoader!!.getResource("contracts/sample-backup.json")
     assertThat(sampleUrl).isNotNull()
-    val sampleFile = File(sampleUrl!!.file)
+    val sampleFile = File(sampleUrl!!.toURI().path ?: error("URI path is null"))
     assertThat(sampleFile.exists()).isTrue()
     sampleBackup = json.parseToJsonElement(sampleFile.readText()).jsonObject
     contractsDir = sampleFile.parentFile

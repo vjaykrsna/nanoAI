@@ -36,7 +36,7 @@ Align the existing nanoAI Android app with the polished multi-modal UX outlined 
 **Language/Version**: Kotlin 1.9.x (JDK 17 target)  
 **Primary Dependencies**: Jetpack Compose Material 3, AndroidX Navigation Compose, Hilt, Kotlin Coroutines/Flow, Room, DataStore, WorkManager, Retrofit + Kotlin Serialization, Coil, MediaPipe LiteRT  
 **Storage**: Room (SQLite) for structured data, Encrypted DataStore for preferences, on-device file storage for models/assets  
-**Testing**: JUnit4 + kotlinx-coroutines-test + Turbine, Mockito/kotlinx testing doubles, Compose UI tests (ComposeTestRule + Espresso interop), Macrobenchmark harness  
+**Testing**: JUnit5 + kotlinx-coroutines-test + Turbine, Mockito/kotlinx testing doubles, Compose UI tests (ComposeTestRule + Espresso interop), Macrobenchmark harness
 **Target Platform**: Android 12L+ (minSdk 31) with compile/targetSdk 36, optimized for phones, tablets, and foldables  
 **Project Type**: Mobile (Android app module with supporting macrobenchmark project)  
 **Performance Goals**: Perceived UI interactions ≤100 ms, content refresh ≤500 ms, FMP ≤300 ms on Pixel 7 class, cold start <1.5 s, frame drops <5%  

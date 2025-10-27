@@ -283,6 +283,23 @@ constructor(
     _filters.update { it.copy(localLibrary = providerType) }
   }
 
+  fun toggleCapability(capability: String) {
+    _filters.update { state ->
+      val current = state.selectedCapabilities
+      val updated =
+        if (current.contains(capability)) {
+          current - capability
+        } else {
+          current + capability
+        }
+      state.copy(selectedCapabilities = updated)
+    }
+  }
+
+  fun clearSelectedCapabilities() {
+    _filters.update { it.copy(selectedCapabilities = emptySet()) }
+  }
+
   fun setHuggingFaceLibrary(library: String?) {
     _filters.update { it.copy(huggingFaceLibrary = library) }
     huggingFaceLibraryViewModel.setLibrary(library)
@@ -306,6 +323,7 @@ constructor(
             pipelineTag = null,
             localSort = ModelSort.RECOMMENDED,
             localLibrary = null,
+            selectedCapabilities = emptySet(),
           )
       }
     }

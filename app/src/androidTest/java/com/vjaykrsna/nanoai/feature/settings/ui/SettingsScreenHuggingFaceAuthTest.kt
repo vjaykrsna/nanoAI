@@ -4,12 +4,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vjaykrsna.nanoai.feature.settings.domain.huggingface.HuggingFaceAuthState
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class SettingsScreenHuggingFaceAuthTest : BaseSettingsScreenTest() {
 
   @Test

@@ -3,10 +3,13 @@ package com.vjaykrsna.nanoai.feature.library.data.workers
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.ListenableWorker.Result as WorkResult
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.vjaykrsna.nanoai.core.common.NanoAIResult
+import com.vjaykrsna.nanoai.core.common.NotificationHelper
+import com.vjaykrsna.nanoai.core.common.NotificationHelper.Companion.NOTIFICATION_ID_DOWNLOAD_PROGRESS
 import com.vjaykrsna.nanoai.feature.library.data.catalog.DownloadManifest
 import com.vjaykrsna.nanoai.feature.library.data.catalog.VerificationOutcome
 import com.vjaykrsna.nanoai.feature.library.data.daos.DownloadTaskDao
@@ -39,6 +42,7 @@ import okhttp3.ResponseBody
 
 private const val DOWNLOAD_BUFFER_SIZE = 8_192
 private const val MAX_RETRY_ATTEMPTS = 3
+private const val PROGRESS_PERCENTAGE_MULTIPLIER = 100
 private const val KEY_TASK_ID = "TASK_ID"
 private const val KEY_MODEL_ID = "MODEL_ID"
 private const val KEY_FILE_PATH = "FILE_PATH"
@@ -65,6 +69,7 @@ constructor(
   val okHttpClient: OkHttpClient,
   val modelManifestUseCase: ModelManifestUseCase,
   val telemetryReporter: TelemetryReporter,
+  val notificationHelper: NotificationHelper,
 )
 
 @HiltWorker
@@ -82,6 +87,8 @@ constructor(
   private val okHttpClient: OkHttpClient = dependencies.okHttpClient
   private val modelManifestUseCase: ModelManifestUseCase = dependencies.modelManifestUseCase
   private val telemetryReporter: TelemetryReporter = dependencies.telemetryReporter
+  private val notificationHelper: NotificationHelper = dependencies.notificationHelper
+  private var modelName: String = ""
 
   override suspend fun doWork(): WorkResult = withContext(Dispatchers.IO) { executeWork() }
 
@@ -95,19 +102,24 @@ constructor(
       modelId == null -> fatalFailureResult("Missing model id")
       modelPackage == null -> fatalFailureResult("Model not found: $modelId")
       else -> {
+        val modelName = modelId // TODO: Use proper model name from modelPackage
         markTaskStarting(downloadTaskDao, taskId)
         modelPackageWriteDao.updateInstallState(
           modelId,
           InstallState.DOWNLOADING,
           Clock.System.now(),
         )
+        val initialNotification =
+          notificationHelper.buildProgressNotification(modelName, 0, taskId, modelId)
+        setForeground(ForegroundInfo(NOTIFICATION_ID_DOWNLOAD_PROGRESS, initialNotification))
 
         when (
           val manifestResult = modelManifestUseCase.refreshManifest(modelId, modelPackage.version)
         ) {
           is NanoAIResult.Success -> processManifest(taskId, modelId, manifestResult.value)
-          is NanoAIResult.RecoverableError -> handleRecoverable(taskId, modelId, manifestResult)
-          is NanoAIResult.FatalError -> handleFatal(taskId, modelId, manifestResult)
+          is NanoAIResult.RecoverableError ->
+            handleRecoverable(taskId, modelId, manifestResult, modelName)
+          is NanoAIResult.FatalError -> handleFatal(taskId, modelId, manifestResult, modelName)
         }
       }
     }
@@ -137,7 +149,7 @@ constructor(
               VerificationOutcome.CORRUPTED,
               integrityResult.message,
             )
-            handleRecoverable(taskId, modelId, integrityResult)
+            handleRecoverable(taskId, modelId, integrityResult, modelName)
           }
           is NanoAIResult.FatalError -> {
             reportVerification(
@@ -146,12 +158,13 @@ constructor(
               VerificationOutcome.CORRUPTED,
               integrityResult.message,
             )
-            handleFatal(taskId, modelId, integrityResult)
+            handleFatal(taskId, modelId, integrityResult, modelName)
           }
         }
       }
-      is NanoAIResult.RecoverableError -> handleRecoverable(taskId, modelId, downloadOutcome)
-      is NanoAIResult.FatalError -> handleFatal(taskId, modelId, downloadOutcome)
+      is NanoAIResult.RecoverableError ->
+        handleRecoverable(taskId, modelId, downloadOutcome, modelName)
+      is NanoAIResult.FatalError -> handleFatal(taskId, modelId, downloadOutcome, modelName)
     }
   }
 
@@ -192,6 +205,7 @@ constructor(
             resp.body!!.saveToFile(
               outputFile = outputFile,
               manifest = manifest,
+              taskId = taskId,
               onProgress = { progress, downloaded, total ->
                 downloadTaskDao.updateProgress(taskId, progress, downloaded)
                 setProgress(
@@ -229,12 +243,13 @@ constructor(
   private suspend fun ResponseBody.saveToFile(
     outputFile: File,
     manifest: DownloadManifest,
+    taskId: String,
     onProgress: suspend (Float, Long, Long) -> Unit,
   ): NanoAIResult.RecoverableError? {
     var status: NanoAIResult.RecoverableError? = null
     byteStream().use { input ->
       FileOutputStream(outputFile).use { output ->
-        status = processDownloadStream(input, output, manifest, onProgress)
+        status = processDownloadStream(input, output, manifest, taskId, onProgress)
       }
     }
     return status
@@ -244,6 +259,7 @@ constructor(
     input: InputStream,
     output: FileOutputStream,
     manifest: DownloadManifest,
+    taskId: String,
     onProgress: suspend (Float, Long, Long) -> Unit,
   ): NanoAIResult.RecoverableError? {
     val buffer = ByteArray(DOWNLOAD_BUFFER_SIZE)
@@ -262,7 +278,16 @@ constructor(
       } else {
         output.write(buffer, 0, read)
         downloaded += read
-        onProgress(progressFor(downloaded, totalBytes), downloaded, totalBytes)
+        val progress = progressFor(downloaded, totalBytes)
+        val progressNotification =
+          notificationHelper.buildProgressNotification(
+            modelName,
+            (progress * PROGRESS_PERCENTAGE_MULTIPLIER).toInt(),
+            taskId,
+            manifest.modelId,
+          )
+        notificationHelper.notifyProgress(progressNotification)
+        onProgress(progress, downloaded, totalBytes)
         read = input.read(buffer)
       }
     }
@@ -378,7 +403,11 @@ constructor(
     taskId: String,
     modelId: String,
     error: NanoAIResult.RecoverableError,
+    modelName: String,
   ): WorkResult {
+    notificationHelper.cancelProgressNotification()
+    val failureNotification = notificationHelper.buildFailureNotification(modelName, error.message)
+    notificationHelper.notifyFailure(failureNotification)
     downloadTaskDao.updateStatusWithError(taskId, DownloadStatus.FAILED, error.message)
     modelPackageWriteDao.updateInstallState(modelId, InstallState.ERROR, Clock.System.now())
     markTaskFinished(downloadTaskDao, taskId)
@@ -405,7 +434,11 @@ constructor(
     taskId: String,
     modelId: String,
     error: NanoAIResult.FatalError,
+    modelName: String,
   ): WorkResult {
+    notificationHelper.cancelProgressNotification()
+    val failureNotification = notificationHelper.buildFailureNotification(modelName, error.message)
+    notificationHelper.notifyFailure(failureNotification)
     downloadTaskDao.updateStatusWithError(taskId, DownloadStatus.FAILED, error.message)
     modelPackageWriteDao.updateInstallState(modelId, InstallState.ERROR, Clock.System.now())
     markTaskFinished(downloadTaskDao, taskId)
@@ -425,6 +458,9 @@ constructor(
     outputFile: File,
     checksum: String,
   ): WorkResult {
+    notificationHelper.cancelProgressNotification()
+    val completionNotification = notificationHelper.buildCompletionNotification(modelName)
+    notificationHelper.notifyCompletion(completionNotification)
     downloadTaskDao.updateStatus(taskId, DownloadStatus.COMPLETED)
     downloadTaskDao.updateProgress(taskId, 1f, manifest.sizeBytes)
     markTaskFinished(downloadTaskDao, taskId)

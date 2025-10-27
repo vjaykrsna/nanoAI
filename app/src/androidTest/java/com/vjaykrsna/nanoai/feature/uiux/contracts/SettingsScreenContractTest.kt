@@ -9,7 +9,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.core.data.preferences.PrivacyPreference
 import com.vjaykrsna.nanoai.core.domain.model.APIProviderConfig
@@ -24,7 +23,6 @@ import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 /**
  * Contract test for Settings screen (FR-008).
@@ -33,12 +31,11 @@ import org.junit.runner.RunWith
  * the legacy provider/backup controls in their dedicated sections.
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
 @Ignore("Settings contract expectations pending finalized copy; see specs/003-UI-UX/plan.md")
 class SettingsScreenContractTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createComposeRule()
+  @JvmField @Rule val environmentRule = TestEnvironmentRule()
+  @JvmField @Rule val composeRule = createComposeRule()
 
   private val sampleProvider =
     APIProviderConfig(

@@ -148,5 +148,5 @@ sealed class AccessibilityAssertion {
  */
 @Composable
 fun TestingTheme(content: @Composable () -> Unit) {
-  NanoAITheme(content = content)
+  NanoAITheme(dynamicColor = false, content = content)
 }

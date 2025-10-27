@@ -7,14 +7,12 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.vjaykrsna.nanoai.MainActivity
 import com.vjaykrsna.nanoai.testing.TestEnvironmentRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
 /**
  * Quickstart Scenario 3 instrumentation: Model download integrity happy + corrupt flows.
@@ -26,13 +24,13 @@ import org.junit.runner.RunWith
  * - Retry CTA enqueues WorkManager job again (`model_integrity_retry_button`).
  */
 @LargeTest
-@RunWith(AndroidJUnit4::class)
 @Ignore(
   "Model integrity workflow not implemented yet; see specs/005-improve-test-coverage/tasks.md"
 )
 class ModelDownloadScenarioTest {
-  @get:Rule(order = 0) val environmentRule = TestEnvironmentRule()
-  @get:Rule(order = 1) val composeRule = createAndroidComposeRule<MainActivity>()
+
+  @JvmField @Rule val environmentRule = TestEnvironmentRule()
+  @JvmField @Rule val composeRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun corruptDownload_surfacesActionableError_and_allowsRetry() {

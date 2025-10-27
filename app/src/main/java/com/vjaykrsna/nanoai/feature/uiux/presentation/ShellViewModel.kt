@@ -195,10 +195,16 @@ constructor(
         val isLeftDrawerOpen = values[LEFT_DRAWER_OPEN_INDEX] as Boolean
         val isRightDrawerOpen = values[RIGHT_DRAWER_OPEN_INDEX] as Boolean
         val activeRightPanel = values[ACTIVE_RIGHT_PANEL_INDEX] as RightPanel?
-        val recentActivity = values[RECENT_ACTIVITY_INDEX] as List<RecentActivityItem>
+        @Suppress("UNCHECKED_CAST")
+        val recentActivity =
+          values[RECENT_ACTIVITY_INDEX] as? List<RecentActivityItem>
+            ?: error("Expected List<RecentActivityItem> at index $RECENT_ACTIVITY_INDEX")
         val undoPayload = values[UNDO_PAYLOAD_INDEX] as UndoPayload?
         val commandPaletteState = values[COMMAND_PALETTE_STATE_INDEX] as CommandPaletteState
-        val jobs = values[PROGRESS_JOBS_INDEX] as List<ProgressJob>
+        @Suppress("UNCHECKED_CAST")
+        val jobs =
+          values[PROGRESS_JOBS_INDEX] as? List<ProgressJob>
+            ?: error("Expected List<ProgressJob> at index $PROGRESS_JOBS_INDEX")
         val chatState = values[CHAT_STATE_INDEX] as ChatState?
 
         val normalizedLayout =
