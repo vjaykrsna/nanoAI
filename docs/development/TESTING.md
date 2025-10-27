@@ -15,6 +15,13 @@ Use this guide when you need to run nanoAI’s automated checks, add new tests, 
 | UI / Compose | ≥ 65 % | Managed + connected instrumentation coverage |
 | Data / repositories | ≥ 70 % | JVM + instrumentation merged coverage |
 
+### JUnit 5 Migration Complete ✅
+The project has been fully migrated to JUnit 5 (Jupiter):
+- ✅ `@Before` → `@BeforeEach`
+- ✅ `@After` → `@AfterEach`
+- ✅ `@get:Rule` → `@RegisterExtension` (with `@JvmStatic` for TestEnvironmentRule)
+- ✅ JUnit Vintage Engine included for backward compatibility
+
 ## 2. Test Suite Matrix
 | Suite | Path | Default Command | Notes |
 | --- | --- | --- | --- |
@@ -36,12 +43,61 @@ For focused development and faster feedback, run tests for specific layers using
 | Data | `./gradlew testDebugUnitTest --tests "*.data.*"` | Repositories, DAOs, and data access |
 | Domain | `./gradlew testDebugUnitTest --tests "*.domain.*"` | Use cases and business logic |
 
+### Android Instrumentation Test Commands
+For instrumentation tests (Android UI/device tests):
+```bash
+# Run all instrumentation tests (connectedAndroidTest)
+./gradlew connectedAndroidTest
+
+# Run specific test class
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="com.vjaykrsna.nanoai.feature.chat.ui.ChatScreenTest"
+
+# Run with managed device
+./gradlew ciManagedDeviceDebugAndroidTest
+
+# Filter by test name
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="*ChatScreenTest*"
+```
+
+**Note**: Instrumentation tests use `AndroidJUnitRunner` and require a device or emulator. The `--tests` flag used for unit tests doesn't work for instrumentation tests.
+
 **Note**: Custom Gradle tasks for each module can be added to `app/build.gradle.kts` if needed, but command line filters provide the same functionality with simpler configuration.
 
 ### Shared helpers
 - `MainDispatcherExtension` overrides `Dispatchers.Main` for coroutine tests.
-- `TestEnvironmentRule` resets Room/DataStore/network toggles between instrumentation runs.
+- `TestEnvironmentRule` resets Room/DataStore/network toggles between instrumentation runs (use as `@RegisterExtension` with `@JvmStatic` for JUnit 5).
 - Fixture builders live under `app/src/test/java/com/vjaykrsna/nanoai/**/fixtures` and `DomainTestBuilders` simplifies thread/message creation.
+
+### JUnit 5 Patterns
+**Android Instrumentation Tests:**
+```kotlin
+@ExtendWith(TestEnvironmentRule::class)
+class MyInstrumentationTest {
+  
+  companion object {
+    @RegisterExtension
+    @JvmStatic
+    val testEnvironmentRule = TestEnvironmentRule() // Shared across all tests
+  }
+  
+  @RegisterExtension
+  val composeRule = createAndroidComposeRule<MainActivity>()
+  
+  @BeforeEach
+  fun setup() { /* ... */ }
+}
+```
+
+**Unit Tests:**
+```kotlin
+class MyUnitTest {
+  @BeforeEach
+  fun setup() { /* ... */ }
+  
+  @Test
+  fun testSomething() { /* ... */ }
+}
+```
 
 ## 3. Everyday Runbook
 1. **While coding** run targeted JVM tests: `./gradlew testDebugUnitTest --tests "*.YourTest"`.

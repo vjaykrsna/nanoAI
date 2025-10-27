@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -150,34 +149,6 @@ internal fun AppearanceDensityCard(
       onUnsupportedSelect = null,
     )
   }
-
-  if (showInfoDialog) {
-    AlertDialog(
-      onDismissRequest = { showInfoDialog = false },
-      title = { Text(text = "Layout Density", style = MaterialTheme.typography.headlineSmall) },
-      text = {
-        Text(
-          text =
-            "Choose how compact or spacious the app interface feels. Compact mode makes elements tighter while spacious mode (coming soon) will enable a more relaxed layout for tablets.",
-          style = MaterialTheme.typography.bodyLarge,
-        )
-      },
-      confirmButton = { TextButton(onClick = { showInfoDialog = false }) { Text("OK") } },
-    )
-  }
-}
-
-@Composable
-internal fun AppearanceTypographyHeader(modifier: Modifier = Modifier) {
-  SettingsSection(title = "Typography & spacing", modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Text(
-        text = "Customize font scale and text spacing throughout the app.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
 }
 
 @Composable
@@ -198,38 +169,4 @@ internal fun AppearanceAnimationPreferencesCard(modifier: Modifier = Modifier) {
       "Animation speed controls and reduced motion settings will be available in a future update. Currently uses standard Material 3 motion guidelines for optimal user experience.",
     modifier = modifier,
   )
-}
-
-@Composable
-internal fun AppearanceAnimationPreferencesCard(modifier: Modifier = Modifier) {
-  Card(
-    modifier = modifier.fillMaxWidth(),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = "Animation preferences",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
-
-      Text(
-        text =
-          "Control motion effects and transition speed for better accessibility and reduced motion.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-
-      SettingsPlaceholderCard(
-        description = "Animation speed, transition effects, and reduced motion controls.",
-        supportingText = "Planning for domain-specific animation tokens in the UI build system.",
-      )
-    }
-  }
 }
