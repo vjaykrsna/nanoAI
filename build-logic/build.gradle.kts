@@ -9,11 +9,11 @@ group = "com.vjaykrsna.nanoai.buildlogic"
 version = "0.1.0-SNAPSHOT"
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")

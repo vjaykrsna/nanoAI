@@ -82,6 +82,7 @@ private const val MESSAGE_BUBBLE_WIDTH_FRACTION = 0.85f
  * @param onUpdateChatState Callback to notify parent about chat state changes (optional)
  */
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod")
 @Composable
 fun ChatScreen(
   modifier: Modifier = Modifier,
