@@ -8,9 +8,9 @@ description: "Tasks for 001-foundation feature"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Document current prerequisite results from .specify/scripts/bash/check-prerequisites.sh in specs/001-foundation/research.md (capture FEATURE_DIR, AVAILABLE_DOCS)
-- [ ] T002 [P] Align feature scope with AGENTS.md and docs/architecture/ARCHITECTURE.md; note any conflicts in specs/001-foundation/research.md
-- [ ] T003 [P] Inventory current coverage gates and CI commands in config/testing/coverage and config/quality/quality-gates.json; summarize gating steps in specs/001-foundation/research.md
+- [X] T001 [P] Document current prerequisite results from .specify/scripts/bash/check-prerequisites.sh in specs/001-foundation/research.md (capture FEATURE_DIR, AVAILABLE_DOCS)
+- [X] T002 [P] Align feature scope with AGENTS.md and docs/architecture/ARCHITECTURE.md; note any conflicts in specs/001-foundation/research.md
+- [X] T003 [P] Inventory current coverage gates and CI commands in config/testing/coverage and config/quality/quality-gates.json; summarize gating steps in specs/001-foundation/research.md
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 

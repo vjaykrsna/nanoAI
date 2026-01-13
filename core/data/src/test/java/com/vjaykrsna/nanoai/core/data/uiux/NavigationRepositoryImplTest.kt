@@ -10,12 +10,8 @@ import com.vjaykrsna.nanoai.core.domain.model.uiux.ShellWindowSizeClass
 import com.vjaykrsna.nanoai.core.domain.model.uiux.ShellWindowWidthClass
 import com.vjaykrsna.nanoai.core.domain.model.uiux.UndoPayload
 import com.vjaykrsna.nanoai.core.domain.repository.NavigationRepository
-import com.vjaykrsna.nanoai.core.domain.repository.UserProfileRepository
 import com.vjaykrsna.nanoai.testing.MainDispatcherExtension
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -26,29 +22,15 @@ class NavigationRepositoryImplTest {
 
   @JvmField @RegisterExtension val mainDispatcherExtension = MainDispatcherExtension()
 
-  private lateinit var userProfileRepository: UserProfileRepository
   private lateinit var repository: NavigationRepositoryImpl
 
   @BeforeEach
   fun setUp() {
-    userProfileRepository = mockk(relaxed = true)
     repository = createRepository()
   }
 
   private fun createRepository(): NavigationRepositoryImpl {
-    coEvery { userProfileRepository.observeUIStateSnapshot(any()) } returns
-      flowOf(
-        com.vjaykrsna.nanoai.core.domain.model.uiux.UIStateSnapshot(
-          userId = "testUser",
-          expandedPanels = emptyList(),
-          recentActions = emptyList(),
-          isSidebarCollapsed = false,
-        )
-      )
-    return NavigationRepositoryImpl(
-      userProfileRepository = userProfileRepository,
-      ioDispatcher = mainDispatcherExtension.dispatcher,
-    )
+    return NavigationRepositoryImpl(ioDispatcher = mainDispatcherExtension.dispatcher)
   }
 
   @Test

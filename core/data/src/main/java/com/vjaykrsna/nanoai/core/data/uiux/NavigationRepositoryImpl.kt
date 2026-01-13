@@ -11,15 +11,11 @@ import com.vjaykrsna.nanoai.core.domain.model.uiux.ShellWindowSizeClass
 import com.vjaykrsna.nanoai.core.domain.model.uiux.UIStateSnapshot
 import com.vjaykrsna.nanoai.core.domain.model.uiux.UndoPayload
 import com.vjaykrsna.nanoai.core.domain.repository.NavigationRepository
-import com.vjaykrsna.nanoai.core.domain.repository.UserProfileRepository
 import com.vjaykrsna.nanoai.core.domain.uiux.UIUX_DEFAULT_USER_ID
 import com.vjaykrsna.nanoai.core.domain.uiux.navigation.Screen
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,14 +24,9 @@ import kotlinx.coroutines.flow.asStateFlow
 @Singleton
 class NavigationRepositoryImpl
 @Inject
-constructor(
-  private val userProfileRepository: UserProfileRepository,
-  @IoDispatcher override val ioDispatcher: CoroutineDispatcher,
-) : NavigationRepository {
+constructor(@IoDispatcher override val ioDispatcher: CoroutineDispatcher) : NavigationRepository {
 
-  private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
   private val userId: String = UIUX_DEFAULT_USER_ID
-  private val hasAppliedHomeStartup = AtomicBoolean(false)
 
   private val _uiSnapshot = MutableStateFlow(defaultSnapshot(userId))
   private val uiSnapshot: StateFlow<UIStateSnapshot> = _uiSnapshot.asStateFlow()
@@ -78,10 +69,12 @@ constructor(
       return
     }
     _uiSnapshot.value =
-      current.toggleLeftDrawer(open).let {
-        if (open && it.isCommandPaletteVisible) {
-          it.updatePaletteVisibility(false)
-        } else it
+      current.toggleLeftDrawer(open).let { updatedSnapshot ->
+        if (open && updatedSnapshot.isCommandPaletteVisible) {
+          updatedSnapshot.updatePaletteVisibility(false)
+        } else {
+          updatedSnapshot
+        }
       }
   }
 
@@ -94,10 +87,12 @@ constructor(
     val newOpen = !currentlyOpen
     val panelValue = if (newOpen) panel.toStorageValue() else null
     _uiSnapshot.value =
-      snapshot.toggleRightDrawer(newOpen, panelValue).let {
-        if (newOpen && it.isCommandPaletteVisible) {
-          it.updatePaletteVisibility(false)
-        } else it
+      snapshot.toggleRightDrawer(newOpen, panelValue).let { updatedSnapshot ->
+        if (newOpen && updatedSnapshot.isCommandPaletteVisible) {
+          updatedSnapshot.updatePaletteVisibility(false)
+        } else {
+          updatedSnapshot
+        }
       }
   }
 
@@ -116,15 +111,6 @@ constructor(
   }
 
   private fun defaultWindowSizeClass(): ShellWindowSizeClass = ShellWindowSizeClass.Default
-
-  private fun coerceInitialActiveMode(snapshot: UIStateSnapshot): UIStateSnapshot {
-    if (hasAppliedHomeStartup.compareAndSet(false, true)) {
-      return snapshot
-        .updateActiveMode(UIStateSnapshot.DEFAULT_MODE_ROUTE)
-        .updatePaletteVisibility(visible = false)
-    }
-    return snapshot
-  }
 
   private fun String?.toRightPanel(): com.vjaykrsna.nanoai.core.domain.model.uiux.RightPanel? {
     val value = this ?: return null

@@ -1,5 +1,3 @@
-@file:Suppress("MagicNumber")
-
 package com.vjaykrsna.nanoai.macrobenchmark
 
 import androidx.benchmark.macro.CompilationMode
@@ -22,17 +20,17 @@ class StartupBenchmark {
   @get:Rule val benchmarkRule = MacrobenchmarkRule()
 
   @Test
-  fun coldStart_thenNavigatePrimaryModes() {
+  fun coldStartThenNavigatePrimaryModes() {
     benchmarkRule.measureRepeated(
       packageName = PACKAGE_NAME,
       metrics = listOf(StartupTimingMetric(), FrameTimingMetric()),
       compilationMode = CompilationMode.Partial(),
-      iterations = 3,
+      iterations = ITERATIONS,
       startupMode = StartupMode.COLD,
       setupBlock = { pressHome() },
     ) {
       startActivityAndWait()
-      device.wait(Until.hasObject(By.res(PACKAGE_NAME, "home_hub")), 5_000)
+      device.wait(Until.hasObject(By.res(PACKAGE_NAME, "home_hub")), WAIT_FOR_HOME_MS)
 
       openMode("sidebar_nav_chat", By.desc("Chat screen with message history and input"))
       openMode(
@@ -49,12 +47,16 @@ class StartupBenchmark {
   private fun MacrobenchmarkScope.openMode(navResourceId: String, targetSelector: BySelector) {
     val navIcon = device.findObject(By.res(PACKAGE_NAME, "topbar_nav_icon"))
     navIcon?.click()
-    device.wait(Until.hasObject(By.res(PACKAGE_NAME, navResourceId)), 2_000)
+    device.wait(Until.hasObject(By.res(PACKAGE_NAME, navResourceId)), WAIT_FOR_NAV_ICON_MS)
     device.findObject(By.res(PACKAGE_NAME, navResourceId))?.click()
-    device.wait(Until.hasObject(targetSelector), 3_000)
+    device.wait(Until.hasObject(targetSelector), WAIT_FOR_SCREEN_MS)
   }
 
   companion object {
     private const val PACKAGE_NAME = "com.vjaykrsna.nanoai"
+    private const val ITERATIONS = 3
+    private const val WAIT_FOR_HOME_MS = 5_000L
+    private const val WAIT_FOR_NAV_ICON_MS = 2_000L
+    private const val WAIT_FOR_SCREEN_MS = 3_000L
   }
 }

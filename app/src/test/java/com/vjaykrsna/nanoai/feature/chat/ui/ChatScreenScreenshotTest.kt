@@ -79,77 +79,18 @@ private fun ChatPreview(chatState: ChatUiState, personaState: PersonaSwitcherUiS
 }
 
 private fun sampleChatState(personaId: UUID, threadId: UUID, persona: PersonaProfile): ChatUiState {
-  val now = Clock.System.now()
-  val assistantMessageTime = now - 120.seconds
-  val userMessageTime = now - 240.seconds
-  val personaSummary =
-    ChatPersonaSummary(
-      personaId = personaId,
-      displayName = persona.name,
-      description = persona.description,
-      preferredModelId = persona.defaultModelPreference,
-    )
+  val (now, assistantMessageTime, userMessageTime) = messageTimestamps()
+  val threads = sampleThreads(personaId, threadId, now, assistantMessageTime)
+  val messages = sampleMessages(threadId, userMessageTime, assistantMessageTime)
 
   return ChatUiState(
-    threads =
-      persistentListOf(
-        ChatThread(
-          threadId = threadId,
-          title = "Kyoto trip planner",
-          personaId = personaId,
-          activeModelId = "phoenix-3b",
-          createdAt = now,
-          updatedAt = assistantMessageTime,
-        )
-      ),
+    threads = threads,
     activeThreadId = threadId,
-    activeThread =
-      ChatThread(
-        threadId = threadId,
-        title = "Kyoto trip planner",
-        personaId = personaId,
-        activeModelId = "phoenix-3b",
-        createdAt = now,
-        updatedAt = assistantMessageTime,
-      ),
-    messages =
-      persistentListOf(
-        Message(
-          messageId = UUID.fromString("00000000-0000-0000-0000-000000000401"),
-          threadId = threadId,
-          role = MessageRole.USER,
-          text = "Plan a 3-day Kyoto trip with offline stops",
-          audioUri = null,
-          imageUri = null,
-          source = MessageSource.CLOUD_API,
-          latencyMs = null,
-          createdAt = Instant.fromEpochMilliseconds(userMessageTime.toEpochMilliseconds()),
-          errorCode = null,
-        ),
-        Message(
-          messageId = UUID.fromString("00000000-0000-0000-0000-000000000402"),
-          threadId = threadId,
-          role = MessageRole.ASSISTANT,
-          text = "Here is an offline-friendly Kyoto itinerary with cached maps and tea stops.",
-          audioUri = null,
-          imageUri = null,
-          source = MessageSource.LOCAL_MODEL,
-          latencyMs = 620,
-          createdAt = Instant.fromEpochMilliseconds(assistantMessageTime.toEpochMilliseconds()),
-          errorCode = null,
-        ),
-      ),
+    activeThread = threads.first(),
+    messages = messages,
     personas = persistentListOf(persona),
-    installedModels =
-      persistentListOf(
-        Model(
-          modelId = "phoenix-3b",
-          displayName = "Phoenix 3B",
-          size = 1_572_864L,
-          parameter = "3B",
-        )
-      ),
-    activePersonaSummary = personaSummary,
+    installedModels = sampleInstalledModels(),
+    activePersonaSummary = persona.toSummary(),
     composerText = "Add a tea ceremony on day 2",
     isModelPickerVisible = false,
     isSendingMessage = false,
@@ -170,6 +111,75 @@ private fun sampleChatState(personaId: UUID, threadId: UUID, persona: PersonaPro
       ),
   )
 }
+
+private fun messageTimestamps(): Triple<Instant, Instant, Instant> {
+  val now = Clock.System.now()
+  val assistantMessageTime = now - 120.seconds
+  val userMessageTime = now - 240.seconds
+  return Triple(now, assistantMessageTime, userMessageTime)
+}
+
+private fun sampleThreads(
+  personaId: UUID,
+  threadId: UUID,
+  now: Instant,
+  assistantMessageTime: Instant,
+) =
+  persistentListOf(
+    ChatThread(
+      threadId = threadId,
+      title = "Kyoto trip planner",
+      personaId = personaId,
+      activeModelId = "phoenix-3b",
+      createdAt = now,
+      updatedAt = assistantMessageTime,
+    )
+  )
+
+private fun sampleMessages(
+  threadId: UUID,
+  userMessageTime: Instant,
+  assistantMessageTime: Instant,
+) =
+  persistentListOf(
+    Message(
+      messageId = UUID.fromString("00000000-0000-0000-0000-000000000401"),
+      threadId = threadId,
+      role = MessageRole.USER,
+      text = "Plan a 3-day Kyoto trip with offline stops",
+      audioUri = null,
+      imageUri = null,
+      source = MessageSource.CLOUD_API,
+      latencyMs = null,
+      createdAt = Instant.fromEpochMilliseconds(userMessageTime.toEpochMilliseconds()),
+      errorCode = null,
+    ),
+    Message(
+      messageId = UUID.fromString("00000000-0000-0000-0000-000000000402"),
+      threadId = threadId,
+      role = MessageRole.ASSISTANT,
+      text = "Here is an offline-friendly Kyoto itinerary with cached maps and tea stops.",
+      audioUri = null,
+      imageUri = null,
+      source = MessageSource.LOCAL_MODEL,
+      latencyMs = 620,
+      createdAt = Instant.fromEpochMilliseconds(assistantMessageTime.toEpochMilliseconds()),
+      errorCode = null,
+    ),
+  )
+
+private fun sampleInstalledModels() =
+  persistentListOf(
+    Model(modelId = "phoenix-3b", displayName = "Phoenix 3B", size = 1_572_864L, parameter = "3B")
+  )
+
+private fun PersonaProfile.toSummary() =
+  ChatPersonaSummary(
+    personaId = personaId,
+    displayName = name,
+    description = description,
+    preferredModelId = defaultModelPreference,
+  )
 
 private fun samplePersonaSwitcherState(
   personaId: UUID,

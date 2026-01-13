@@ -275,18 +275,4 @@ constructor(
     val kotlinInstant: Instant? = dismissedAt?.toKotlinInstant()
     uiPreferencesStore.setConnectivityBannerDismissed(kotlinInstant)
   }
-
-  private suspend fun ensureUiStateSnapshot(userId: String): UIStateSnapshot {
-    val existing = uiStateSnapshotDao.getByUserId(userId)?.toDomain()
-    if (existing != null) return existing
-    val snapshot =
-      UIStateSnapshot(
-        userId = userId,
-        expandedPanels = emptyList(),
-        recentActions = emptyList(),
-        isSidebarCollapsed = false,
-      )
-    uiStateSnapshotDao.insert(snapshot.toEntity())
-    return snapshot
-  }
 }

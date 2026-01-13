@@ -59,84 +59,100 @@ internal fun PrivacyDashboardCard(summary: PrivacyDashboardSummary, modifier: Mo
     title = "Privacy Dashboard",
     modifier = modifier.semantics { contentDescription = "Privacy settings summary dashboard" },
     showInfoButton = true,
-    infoContent = {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-          text = "This dashboard provides an overview of your privacy settings.",
-          style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-          text =
-            "All your data is stored locally on your device. " +
-              "nanoAI operates without cloud dependencies by default, " +
-              "ensuring your conversations remain private.",
-          style = MaterialTheme.typography.bodySmall,
-        )
-      }
-    },
+    infoContent = { PrivacyDashboardInfoContent() },
   ) {
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      PrivacyStatusRow(
-        label = "Privacy Consent",
-        isEnabled = summary.isConsentAcknowledged,
-        enabledText = "Acknowledged",
-        disabledText = "Pending",
-      )
+    PrivacyDashboardSummaryContent(summary)
+  }
+}
 
-      PrivacyStatusRow(
-        label = "Usage Analytics",
-        isEnabled = summary.isTelemetryEnabled,
-        enabledText = "Enabled",
-        disabledText = "Disabled",
-      )
+@Composable
+private fun PrivacyDashboardInfoContent() {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(
+      text = "This dashboard provides an overview of your privacy settings.",
+      style = MaterialTheme.typography.bodyMedium,
+    )
+    Text(
+      text =
+        "All your data is stored locally on your device. " +
+          "nanoAI operates without cloud dependencies by default, " +
+          "ensuring your conversations remain private.",
+      style = MaterialTheme.typography.bodySmall,
+    )
+  }
+}
 
-      PrivacyStatusRow(
-        label = "Export Warnings",
-        isEnabled = !summary.exportWarningsDismissed,
-        enabledText = "Active",
-        disabledText = "Dismissed",
-      )
+@Composable
+private fun PrivacyDashboardSummaryContent(summary: PrivacyDashboardSummary) {
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    PrivacyStatusRow(
+      label = "Privacy Consent",
+      isEnabled = summary.isConsentAcknowledged,
+      enabledText = "Acknowledged",
+      disabledText = "Pending",
+    )
 
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = "Data Retention",
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-          text =
-            summary.retentionPolicy.replace("_", " ").lowercase().replaceFirstChar {
-              it.uppercase()
-            },
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.primary,
-        )
-      }
+    PrivacyStatusRow(
+      label = "Usage Analytics",
+      isEnabled = summary.isTelemetryEnabled,
+      enabledText = "Enabled",
+      disabledText = "Disabled",
+    )
 
-      if (summary.disclaimerShownCount > 0) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Text(
-            text = "Disclaimer Views",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-          Text(
-            text =
-              "${summary.disclaimerShownCount} time${if (summary.disclaimerShownCount == 1) "" else "s"}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-      }
+    PrivacyStatusRow(
+      label = "Export Warnings",
+      isEnabled = !summary.exportWarningsDismissed,
+      enabledText = "Active",
+      disabledText = "Dismissed",
+    )
+
+    DataRetentionRow(summary)
+
+    if (summary.disclaimerShownCount > 0) {
+      DisclaimerCountRow(summary)
     }
+  }
+}
+
+@Composable
+private fun DataRetentionRow(summary: PrivacyDashboardSummary) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = "Data Retention",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text =
+        summary.retentionPolicy.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
+}
+
+@Composable
+private fun DisclaimerCountRow(summary: PrivacyDashboardSummary) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = "Disclaimer Views",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Text(
+      text =
+        "${summary.disclaimerShownCount} time${if (summary.disclaimerShownCount == 1) "" else "s"}",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
 
