@@ -21,17 +21,22 @@
 3. **Download a model** from the built-in library
 4. **Start chatting** – you're ready to go!
 
-### First Time Setup
+### Building from Source
 
 ```bash
 # Clone and build the app
 git clone https://github.com/vjaykrsna/nanoAI.git
 cd nanoAI
-./gradlew installDebug
+./gradlew build          # Run full build with tests
+./gradlew installDebug   # Install on device
 
-# Launch on your device or emulator
+# Run tests and quality checks
+./gradlew check
+
+# View test coverage reports
+./gradlew jacocoFullReport
+# Reports available at app/build/reports/jacoco/full/index.html
 ```
-
 
 ## 💬 What You Can Do
 
@@ -51,6 +56,16 @@ cd nanoAI
 - **Audio processing** – Transcribe, translate, and analyze audio content (planned)
 - **Accessibility focus** – Full screen reader support for visually impaired users
 
+### Code Assistance
+- **Programming help** – Get explanations, debugging help, and code suggestions
+- **Multiple languages** – Support for popular programming languages
+- **Context aware** – Understands your project structure and coding patterns
+
+### Language Translation
+- **Real-time translation** – Translate between multiple languages instantly
+- **Conversation mode** – Maintain context across multiple exchanges
+- **Offline support** – Works without internet for downloaded language models
+
 ### Additional Features
 - **Model Library** – Browse, download, pause/resume models with progress tracking and size requirements.
 - **Settings & Export** – Configure APIs, export/import personas and settings (JSON format, unencrypted with warnings).
@@ -65,6 +80,23 @@ nanoAI follows clean architecture principles with Kotlin-first design:
 - **Runtime Layer**: MediaPipe Generative for on-device inference, extensible to TensorFlow Lite/MLC LLM
 
 Key technologies: Kotlin 2.2.x, Jetpack Compose, Hilt DI, Room, DataStore, WorkManager, Coroutines.
+
+## 🔧 Advanced Features
+
+### Model Management
+- **Local model library** – Download and manage AI models optimized for your device
+- **Cloud integration** – Optional connection to services like OpenAI or Gemini for enhanced capabilities
+- **Automatic updates** – Keep your models current with the latest improvements
+
+### Personalization
+- **Theme selection** – Light, dark, or system-following themes
+- **Layout preferences** – Compact or comfortable spacing based on your preference
+- **Accessibility options** – High contrast, large text, and screen reader optimization
+
+### Data Control
+- **Export conversations** – Backup your chat history and persona settings
+- **Privacy settings** – Control what data (if any) is shared for app improvement
+- **Secure storage** – All personal data encrypted and stored locally
 
 ## 🧪 Testing & Quality
 
@@ -97,65 +129,6 @@ nanoAI isn't just an app—it's evolving into your personal AI ecosystem. Imagin
 
 **The future is limitless**—nanoAI will be the central hub connecting you to the world's AI capabilities, all while keeping your data private and under your control. Join us on this exciting journey!
 
-## 🤝 Contributing
-
-We welcome contributions! The project uses a structured spec-driven development process:
-
-1. Check `specs/` for feature specifications and current plans
-2. Review `docs/` for architecture, testing, and API documentation
-3. Follow the testing guide for adding comprehensive test coverage
-4. Run `./gradlew check` to ensure quality gates pass
-
-### Development Setup
-```bash
-git clone https://github.com/vjaykrsna/nanoAI.git
-cd nanoAI
-./gradlew build  # Run full build with tests
-./gradlew installDebug  # Install on device
-```
-
-See `docs/development/TESTING.md` for detailed testing instructions and `docs/architecture/ARCHITECTURE.md` for technical deep-dive.
-
-Key guides for contributors:
-- `docs/development/BUILD_WORKFLOW.md` – build logic conventions and automation
-- `docs/development/QUALITY_GATES.md` – required static analysis and coverage thresholds
-- `docs/development/TESTING.md` – testing strategy, tooling, and coverage workflows
-
-## 📄 License
-
-[Add license information here]
-
-## 🙏 Acknowledgments
-
-Built with modern Android technologies and a focus on user privacy and responsible AI use.
-
-### Code Assistance
-- **Programming help** – Get explanations, debugging help, and code suggestions
-- **Multiple languages** – Support for popular programming languages
-- **Context aware** – Understands your project structure and coding patterns
-
-### Language Translation
-- **Real-time translation** – Translate between multiple languages instantly
-- **Conversation mode** – Maintain context across multiple exchanges
-- **Offline support** – Works without internet for downloaded language models
-
-## 🔧 Advanced Features
-
-### Model Management
-- **Local model library** – Download and manage AI models optimized for your device
-- **Cloud integration** – Optional connection to services like OpenAI or Gemini for enhanced capabilities
-- **Automatic updates** – Keep your models current with the latest improvements
-
-### Personalization
-- **Theme selection** – Light, dark, or system-following themes
-- **Layout preferences** – Compact or comfortable spacing based on your preference
-- **Accessibility options** – High contrast, large text, and screen reader optimization
-
-### Data Control
-- **Export conversations** – Backup your chat history and persona settings
-- **Privacy settings** – Control what data (if any) is shared for app improvement
-- **Secure storage** – All personal data encrypted and stored locally
-
 ## 📊 Quality & Privacy Commitment
 
 nanoAI is built with transparency and user control in mind:
@@ -165,37 +138,22 @@ nanoAI is built with transparency and user control in mind:
 - **Quality gates** – Automated testing ensures reliability across all features
 - **Accessibility compliance** – Works with screen readers and meets WCAG guidelines
 
-## 🛠️ For Developers
+## 🤝 Contributing
 
-### Building from Source
-```bash
-# Run tests and quality checks
-./gradlew check
+We welcome contributions! The project uses a structured spec-driven development process:
 
-# Install on connected device
-./gradlew installDebug
+1. Check `specs/` for feature specifications and current plans
+2. Review `docs/` for architecture, testing, and API documentation
+3. Follow the testing guide for adding comprehensive test coverage
+4. Run `./gradlew check` to ensure quality gates pass
 
-# View test coverage reports
-./gradlew jacocoFullReport
-# Reports available at app/build/reports/jacoco/full/index.html
-```
-
-### Contributing
-We welcome contributions! Please:
-
-1. **Start with tests** – Add tests for new features before implementation
-2. **Follow our quality gates** – Ensure all tests pass and coverage thresholds are met
-3. **Respect privacy** – Any new features must maintain our privacy-first approach
-4. **Document changes** – Update user-facing documentation for any new capabilities
+**Key guidelines:**
+- **Start with tests** – Add tests for new features before implementation
+- **Follow quality gates** – Ensure all tests pass and coverage thresholds are met
+- **Respect privacy** – Any new features must maintain our privacy-first approach
+- **Document changes** – Update user-facing documentation for any new capabilities
 
 See our [Testing Guide](docs/development/TESTING.md), [Quality Gates](docs/development/QUALITY_GATES.md), and [Architecture Overview](docs/architecture/ARCHITECTURE.md) for development details.
-
-## 🎯 Roadmap
-
-- **Enhanced multimodal** – Better image generation and audio processing capabilities
-- **Expanded model support** – More local AI models and cloud provider options
-- **Improved accessibility** – Even better support for users with different abilities
-- **Performance optimization** – Faster responses and smoother interactions
 
 ## 📄 License
 

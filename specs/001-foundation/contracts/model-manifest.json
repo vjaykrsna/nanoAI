@@ -73,6 +73,7 @@
         },
         "notes": {
             "type": "array",
+            "description": "Free-form notes; include database compatibility signals (e.g., requires encrypted messages schema v9+) and model-specific caveats.",
             "items": {
                 "type": "string"
             }

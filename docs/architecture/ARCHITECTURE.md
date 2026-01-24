@@ -211,6 +211,11 @@ Room database with 8 entities supporting offline-first functionality:
 - **ApiProviderConfig**: Cloud API endpoint configurations
 - **UserProfile/UIState**: Cached personalization and layout preferences
 
+- Upcoming schema v9 (chat encryption): the `messages` table will add `ciphertext`, `iv`,
+  `encryption_version`, and `search_text` columns while dropping plaintext `text`. Migration will
+  encrypt existing rows with an AES/GCM key stored in EncryptedSecretStore and is guarded by
+  [app/src/test/java/com/vjaykrsna/nanoai/core/data/db/MessageDaoMigrationTest.kt](app/src/test/java/com/vjaykrsna/nanoai/core/data/db/MessageDaoMigrationTest.kt).
+
 All entities include proper foreign key relationships and indexing for performance.
 
 ### ViewModel Architecture

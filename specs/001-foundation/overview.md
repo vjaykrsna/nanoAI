@@ -1,6 +1,7 @@
 # nanoAI — UI/UX Blueprint
 
-**Date:** 2025-10-06  
+**Last Updated:** 2026-01-25  
+**Status:** Implemented in `feature/uiux` and `shared/ui`  
 **Scope:** App shell, navigation, and core UX patterns.
 
 ---
@@ -32,7 +33,7 @@
 
 ---
 
-## Core Screens (Conceptual)
+## Core Screens (Implemented)
 
 - **Home:** mode cards and recent activity.
 - **Chat:** threaded messages, composer, model/persona controls.

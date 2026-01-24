@@ -92,3 +92,20 @@ Root application module:
 ## Notes
 - Follow `AGENTS.md` for security, performance, and architecture rules.
 - Any deviations from this plan must update this spec and relevant docs.
+
+## Phase 2 Remediation Plan (T006)
+- Approach: adopt column-level encryption for chat messages now while preparing a follow-on SQLCipher path for full-database encryption; use AES/GCM with a symmetric key sealed via `EncryptedSecretStore`.
+- Schema deltas (messages table): add `ciphertext` (BLOB/Base64, non-null), `iv` (12-byte IV/Base64, non-null), `encryption_version` (INT, default 1), and `search_text` (TEXT, redacted preview for search/UI). Drop or null out the legacy `text` column after migration; DAO/domain should only surface decrypted text.
+- Migration steps:
+  1. Add the new columns with defaults; keep plaintext `text` temporarily for backfill.
+  2. Introduce `MessageCrypto` + `MessageKeyProvider` that pulls an AES-256 key from `EncryptedSecretStore` (alias `nanoai.message`), encrypts existing `text` with per-row random IVs, and writes `ciphertext`/`iv`/`encryption_version` + redacted `search_text`.
+  3. After backfill, null the `text` column and update DAOs/repositories to read/write encrypted fields only.
+  4. Add migration/DAO tests (T009/T016) expecting ciphertext persistence and decrypt-on-read behavior; ensure failure surfaces error to repository/ViewModel layers.
+- Key management & rotation: store one AES key in `EncryptedSecretStore`, version tracked via `encryption_version`; future rotations can re-encrypt rows with a new key/version and preserve backward decryption until all rows are upgraded.
+- Validation: run migrations on sample DBs, verify offline flows still work, and update `ARCHITECTURE.md`/contracts after the schema change (T010).
+
+## Architecture Guard Checklist (T012)
+- [ ] ViewModels depend on consolidated UseCases only; no direct Repository injections or helper facades that bypass UseCases.
+- [ ] New consolidated facades (PersonaUseCases, PreferencesUseCases, ModelCatalogUseCase) expose typed operations without leaking repository implementations to the presentation layer.
+- [ ] Code reviews must reject PRs that introduce ViewModel → Repository shortcuts or bypass encryption in the data layer.
+- [ ] Add/keep unit tests for ViewModels to verify they call UseCase seams (mock UseCases, never repositories) and integration tests to cover encrypted chat persistence.

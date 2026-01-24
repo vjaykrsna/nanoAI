@@ -145,6 +145,8 @@ nanoAI/
 ├── build.gradle.kts               # Root build script
 └── settings.gradle.kts            # Active modules (:app, :macrobenchmark)
 ```
+
+### When Debugging
 1. Check logs with `ShellTelemetry`
 2. Isolate layers (UI, Domain, Data)
 3. Use `TestEnvironmentRule` for controlled testing

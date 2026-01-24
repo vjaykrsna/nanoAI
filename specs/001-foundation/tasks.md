@@ -14,17 +14,17 @@ description: "Tasks for 001-foundation feature"
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T004 Audit chat persistence for plaintext storage by reviewing app/src/main/java/com/vjaykrsna/nanoai/core/data/db/entities/MessageEntity.kt and related DAOs to confirm text field handling; record findings in specs/001-foundation/research.md
-- [ ] T005 Assess encryption mechanisms available (EncryptedSecretStore, Room support) in app/src/main/java/com/vjaykrsna/nanoai/core/security and app/src/main/java/com/vjaykrsna/nanoai/core/data/db; propose options in specs/001-foundation/research.md (depends on T004)
-- [ ] T006 Define remediation plan for encrypted message storage and migration in specs/001-foundation/plan.md and data-model alignment in specs/001-foundation/data-model.md (depends on T005)
-- [ ] T007 [P] Profile build pipeline to validate over-engineering claim: measure clean build and incremental build times, attribute plugin/config impacts from build-logic/ and app/build.gradle.kts, and propose actions to reach <2 min local build; log bottlenecks and decisions in specs/001-foundation/research.md
-- [ ] T008 [P] Map use-case/repository indirections (e.g., ChatFeatureCoordinator, thin GetDefaultPersonaUseCase) across app/src/main/java/com/vjaykrsna/nanoai/feature/chat and core/domain to quantify redundancy; summarize counts, candidate merges, and layer-preserving options in specs/001-foundation/research.md
-- [ ] T009 Establish migration test scaffolding for encrypted chat storage in app/src/test/java/com/vjaykrsna/nanoai/core/data/db/MessageDaoMigrationTest.kt (failing test that expects ciphertext) (depends on T006)
-- [ ] T010 Update Room schema and migration plan documents in specs/001-foundation/contracts/model-manifest.json notes and docs/architecture/ARCHITECTURE.md section references (depends on T006)
-- [ ] T011 [P] Quantify thin use cases/coordinator redundancy (sample 200+ files) and propose consolidation that retains ViewModel → UseCase → Repository → DataSource flow; document keep/delete/merge rationale in specs/001-foundation/research.md (depends on T008)
-- [ ] T012 Add architecture guard: checklist in specs/001-foundation/plan.md to prevent direct ViewModel → Repository shortcuts during refactors; require code review gate noted in specs/001-foundation/research.md (depends on T011)
-- [ ] T013 [P] Validate export/import warning behavior and data classification (Secrets vs Sensitive) across settings and chat flows; add gaps and required warnings to specs/001-foundation/research.md (depends on T006)
-- [ ] T014 [P] Validate credential encryption and decryption paths with tests in app/src/test/java/com/vjaykrsna/nanoai/core/security/EncryptedSecretStoreTest.kt and app/src/test/java/com/vjaykrsna/nanoai/core/data/datastore/CredentialStoreTest.kt (depends on T005)
+- [X] T004 Audit chat persistence for plaintext storage by reviewing app/src/main/java/com/vjaykrsna/nanoai/core/data/db/entities/MessageEntity.kt and related DAOs to confirm text field handling; record findings in specs/001-foundation/research.md
+- [X] T005 Assess encryption mechanisms available (EncryptedSecretStore, Room support) in app/src/main/java/com/vjaykrsna/nanoai/core/security and app/src/main/java/com/vjaykrsna/nanoai/core/data/db; propose options in specs/001-foundation/research.md (depends on T004)
+- [X] T006 Define remediation plan for encrypted message storage and migration in specs/001-foundation/plan.md and data-model alignment in specs/001-foundation/data-model.md (depends on T005)
+- [X] T007 [P] Profile build pipeline to validate over-engineering claim: measure clean build and incremental build times, attribute plugin/config impacts from build-logic/ and app/build.gradle.kts, and propose actions to reach <2 min local build; log bottlenecks and decisions in specs/001-foundation/research.md
+- [X] T008 [P] Map use-case/repository indirections (e.g., ChatFeatureCoordinator, thin GetDefaultPersonaUseCase) across app/src/main/java/com/vjaykrsna/nanoai/feature/chat and core/domain to quantify redundancy; summarize counts, candidate merges, and layer-preserving options in specs/001-foundation/research.md
+- [X] T009 Establish migration test scaffolding for encrypted chat storage in app/src/test/java/com/vjaykrsna/nanoai/core/data/db/MessageDaoMigrationTest.kt (failing test that expects ciphertext) (depends on T006)
+- [X] T010 Update Room schema and migration plan documents in specs/001-foundation/contracts/model-manifest.json notes and docs/architecture/ARCHITECTURE.md section references (depends on T006)
+- [X] T011 [P] Quantify thin use cases/coordinator redundancy (sample 200+ files) and propose consolidation that retains ViewModel → UseCase → Repository → DataSource flow; document keep/delete/merge rationale in specs/001-foundation/research.md (depends on T008)
+- [X] T012 Add architecture guard: checklist in specs/001-foundation/plan.md to prevent direct ViewModel → Repository shortcuts during refactors; require code review gate noted in specs/001-foundation/research.md (depends on T011)
+- [X] T013 [P] Validate export/import warning behavior and data classification (Secrets vs Sensitive) across settings and chat flows; add gaps and required warnings to specs/001-foundation/research.md (depends on T006)
+- [X] T014 [P] Validate credential encryption and decryption paths with tests in app/src/test/java/com/vjaykrsna/nanoai/core/security/EncryptedSecretStoreTest.kt and app/src/test/java/com/vjaykrsna/nanoai/core/data/datastore/CredentialStoreTest.kt (depends on T005)
 
 ## Phase 3: User Story 1 - Local-first Private Assistant (Priority: P1)
 

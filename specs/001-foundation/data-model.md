@@ -16,13 +16,17 @@ This model consolidates core entities for chat, models, privacy, and quality met
 - messageId (UUID)
 - threadId (UUID)
 - role (USER, ASSISTANT, SYSTEM)
-- text (String?)
+- ciphertext (Base64/BLOB, non-null)
+- initializationVector (Base64/BLOB, non-null)
+- encryptionVersion (Int = 1)
+- searchText (String?, redacted preview for search)
 - audioUri (String?)
 - imageUri (String?)
 - source (LOCAL_MODEL, CLOUD_API)
 - latencyMs (Long?)
 - createdAt (Instant)
 - errorCode (String?)
+Notes: plaintext `text` is derived at read-time via `MessageCrypto` using an AES-256 key stored in EncryptedSecretStore (alias `nanoai.message`).
 
 ### PersonaProfile
 - personaId (UUID)
